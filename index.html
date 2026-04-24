@@ -562,7 +562,7 @@ async function doLogin() {
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = 'Входим...';
   try {
-    const data = await api('POST', '/auth/login', { email, password });
+    const data = await api('POST', '/api/auth/login', { email, password });
     saveAuth(data);
     closeAuthModal();
     showPage('profile');
@@ -580,7 +580,7 @@ async function doRegister() {
   const btn = document.getElementById('registerBtn');
   btn.disabled = true; btn.textContent = 'Регистрируем...';
   try {
-    const data = await api('POST', '/auth/register', { name, email, phone, password, role: regRole });
+    const data = await api('POST', '/api/auth/register', { name, email, phone, password, role: regRole });
     saveAuth(data);
     closeAuthModal();
     showPage('profile');
@@ -619,7 +619,7 @@ async function loadJobs() {
   const params = new URLSearchParams({ q, type: filters.type, sort });
   document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Сервер просыпается, подождите до 60 сек...</div>`;
   try {
-    const data = await api('GET', `/jobs?${params}`);
+    const data = await api('GET', `/api/jobs?${params}`);
     renderJobs(data.jobs, data.total);
     document.getElementById('statJobs').textContent = data.total;
     document.getElementById('heroSub').textContent = `${data.total} вакансий прямо сейчас · AI подберёт лучшие`;
@@ -711,7 +711,7 @@ async function applyJob(e, id) {
   e.stopPropagation();
   if (!currentUser) { openAuthModal('login'); return; }
   try {
-    await api('POST', `/jobs/${id}/apply`, { message: '' });
+    await api('POST', `/api/jobs/${id}/apply`, { message: '' });
     appliedIds.add(id);
     const badge = document.getElementById('appliedBadge');
     badge.classList.remove('hidden');
@@ -767,7 +767,7 @@ async function submitJob() {
   const btn = document.getElementById('submitJobBtn');
   btn.disabled = true; btn.textContent = 'Публикуем...';
   try {
-    await api('POST', '/jobs', {
+    await api('POST', '/api/jobs', {
       title, company, contact,
       location: document.getElementById('f-location').value,
       salary: document.getElementById('f-salary').value,
@@ -807,7 +807,7 @@ async function loadProfile() {
 
   // Telegram статус
   try {
-    const tg = await api('GET', '/telegram/status');
+    const tg = await api('GET', '/api/telegram/status');
     if (tg.linked) {
       document.getElementById('tgStatus').innerHTML = `<span class="tg-linked">✓ Привязан${tg.telegram_username ? ' @' + tg.telegram_username : ''}</span>`;
       document.getElementById('tgUnlinkBtn').classList.remove('hidden');
@@ -818,7 +818,7 @@ async function loadProfile() {
   // Мои отклики (соискатель)
   if (currentUser.role === 'seeker') {
     try {
-      const apps = await api('GET', '/jobs/my/applications');
+      const apps = await api('GET', '/api/jobs/my/applications');
       const list = document.getElementById('myApplicationsList');
       if (!apps.length) {
         list.innerHTML = '<div style="color:var(--muted);font-size:13px">Вы ещё не откликались на вакансии</div>';
@@ -839,7 +839,7 @@ async function loadProfile() {
   if (currentUser.role === 'employer') {
     document.getElementById('myJobsCard').style.display = 'block';
     try {
-      const jobs = await api('GET', '/jobs/my/list');
+      const jobs = await api('GET', '/api/jobs/my/list');
       const list = document.getElementById('myJobsList');
       if (!jobs.length) {
         list.innerHTML = '<div style="color:var(--muted);font-size:13px">У вас ещё нет объявлений</div>';
@@ -867,14 +867,14 @@ async function loadProfile() {
 async function generateTgCode() {
   if (!currentUser) { openAuthModal('login'); return; }
   try {
-    const data = await api('POST', '/telegram/generate-code');
+    const data = await api('POST', '/api/telegram/generate-code');
     document.getElementById('tgCode').textContent = data.code;
     document.getElementById('tgCodeArea').classList.remove('hidden');
   } catch (e) { alert(e.message); }
 }
 
 async function unlinkTelegram() {
-  await api('DELETE', '/telegram/unlink');
+  await api('DELETE', '/api/telegram/unlink');
   document.getElementById('tgStatus').textContent = 'Не привязан';
   document.getElementById('tgUnlinkBtn').classList.add('hidden');
   document.getElementById('tgLinkBtn').classList.remove('hidden');
@@ -925,7 +925,7 @@ async function analyzeProfile() {
 // ════════════════════════════════════════
 async function toggleJobActive(id, isActive) {
   try {
-    await api('PUT', `/jobs/${id}`, { is_active: !isActive });
+    await api('PUT', `/api/jobs/${id}`, { is_active: !isActive });
     loadProfile();
     loadJobs();
   } catch (e) { alert(e.message); }
@@ -934,7 +934,7 @@ async function toggleJobActive(id, isActive) {
 async function deleteMyJob(id) {
   if (!confirm('Удалить вакансию? Все отклики тоже будут удалены.')) return;
   try {
-    await api('DELETE', `/jobs/${id}`);
+    await api('DELETE', `/api/jobs/${id}`);
     loadProfile();
     loadJobs();
   } catch (e) { alert(e.message); }
@@ -944,7 +944,7 @@ async function confirmDeleteAccount() {
   if (!confirm('Вы уверены? Аккаунт и все ваши данные будут удалены безвозвратно.')) return;
   if (!confirm('Это действие нельзя отменить. Продолжить?')) return;
   try {
-    await api('DELETE', '/auth/me');
+    await api('DELETE', '/api/auth/me');
     doLogout();
     alert('Ваш аккаунт был удалён.');
   } catch (e) { alert(e.message); }
