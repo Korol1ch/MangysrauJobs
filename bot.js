@@ -14,13 +14,31 @@ if (!process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN === 'your_
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
   polling: {
+    interval: 2000,
+    autoStart: true,
     params: {
-      allowed_updates: [],
+      allowed_updates: ['message'],
       drop_pending_updates: true,
     }
   }
 });
 console.log('🤖 Telegram бот запущен');
+
+// ── ОБРАБОТКА КОНФЛИКТА ──
+// При деплое Render два инстанса могут работать одновременно ~30 сек
+bot.on('polling_error', (err) => {
+  if (err.code === 'ETELEGRAM' && err.message && err.message.includes('Conflict')) {
+    console.warn('⚠️ Telegram polling conflict — старый инстанс ещё жив. Пересоздаём через 10 сек...');
+    bot.stopPolling().then(() => {
+      setTimeout(() => {
+        bot.startPolling();
+        console.log('🔄 Polling перезапущен');
+      }, 10000);
+    });
+  } else {
+    console.error('❌ Polling error:', err.code, err.message);
+  }
+});
 
 // ════════════════════════════════════════
 //  КОМАНДЫ БОТА
@@ -59,7 +77,6 @@ bot.onText(/\/link (.+)/, (msg, match) => {
   const chatId = String(msg.chat.id);
   const username = msg.from.username || null;
 
-  // Ищем пользователя по временному коду в БД
   const user = db.prepare('SELECT * FROM users WHERE link_code = ? AND link_code_exp > ?')
     .get(code, Date.now());
 
@@ -69,7 +86,6 @@ bot.onText(/\/link (.+)/, (msg, match) => {
     );
   }
 
-  // Привязываем
   db.prepare('UPDATE users SET telegram_id = ?, telegram_username = ?, link_code = NULL, link_code_exp = NULL WHERE id = ?')
     .run(chatId, username, user.id);
 
@@ -113,10 +129,9 @@ bot.onText(/\/jobs/, (msg) => {
 });
 
 // ════════════════════════════════════════
-//  ФУНКЦИИ УВЕДОМЛЕНИЙ (вызываются из routes/jobs.js)
+//  ФУНКЦИИ УВЕДОМЛЕНИЙ
 // ════════════════════════════════════════
 
-// Уведомление работодателю — новый отклик
 async function notifyNewApplication(employerTgId, data) {
   const { jobTitle, seekerName, seekerPhone, seekerTg, message } = data;
 
@@ -131,7 +146,6 @@ async function notifyNewApplication(employerTgId, data) {
   return bot.sendMessage(employerTgId, text, { parse_mode: 'Markdown' });
 }
 
-// Уведомление соискателю — статус заявки
 async function notifyApplicationStatus(seekerTgId, data) {
   const { jobTitle, company, status, employerContact } = data;
 
