@@ -112,3 +112,39 @@ router.post('/analyze-profile', authOptional, async (req, res) => {
 });
 
 module.exports = router;
+
+// ── POST /api/ai/check-job ──
+router.post('/check-job', async (req, res) => {
+  const { title, company, salary, description, contact, type, experience } = req.body;
+  if (!title || !company) return res.status(400).json({ error: 'Должность и компания обязательны' });
+
+  try {
+    const raw = await callGemini(
+      `Ты модератор сайта вакансий в Мангистау (Казахстан). Анализируй вакансию на признаки мошенничества, MLM, финансовых пирамид, сетевого маркетинга, нереальных обещаний. 
+Отвечай ТОЛЬКО в формате JSON без markdown:
+{
+  "score": 85,
+  "verdict": "ok" | "warning" | "danger",
+  "flags": ["список найденных проблем, если есть"],
+  "summary": "краткий вывод на русском 1-2 предложения"
+}
+score: 0-100 (100 = полностью доверенная вакансия).
+verdict: ok (score>=70), warning (40-69), danger (<40).
+Признаки мошенничества: слишком высокая зарплата без опыта, "лёгкий заработок", "работа из дома 500к+", требование предоплаты/залога, MLM/сетевой, размытое описание без конкретики, личные данные на старте, WhatsApp/Telegram как единственный контакт без названия компании.`,
+      `Вакансия:
+Должность: ${title}
+Компания: ${company}
+Зарплата: ${salary || 'не указана'}
+Тип: ${type || ''}
+Опыт: ${experience || ''}
+Описание: ${description || 'не указано'}
+Контакт: ${contact}`,
+      400
+    );
+    const clean = raw.replace(/```json|```/g, '').trim();
+    res.json(JSON.parse(clean));
+  } catch (e) {
+    console.error('AI /check-job error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});

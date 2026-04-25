@@ -780,6 +780,31 @@ function selectRegRole(r) {
       <button class="btn-submit" onclick="resetEmployer()" data-i18n="emp_success_more">Разместить ещё</button>
     </div>
   </div>
+
+  <!-- AI Trust Check Modal -->
+  <div id="trustCheckOverlay" class="modal-overlay hidden" style="z-index:500">
+    <div class="modal" style="max-width:460px">
+      <div id="trustCheckLoading" style="text-align:center;padding:20px 0">
+        <div class="spinner" style="margin:0 auto 12px"></div>
+        <div style="color:var(--muted);font-size:14px">🔍 AI проверяет вакансию на достоверность...</div>
+      </div>
+      <div id="trustCheckResult" class="hidden">
+        <div id="trustBadge" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;margin-bottom:16px">
+          <div id="trustIcon" style="font-size:32px"></div>
+          <div>
+            <div id="trustVerdict" style="font-size:15px;font-weight:700"></div>
+            <div id="trustScore" style="font-size:12px;opacity:.8;margin-top:2px"></div>
+          </div>
+        </div>
+        <div id="trustSummary" style="font-size:14px;color:var(--text);margin-bottom:12px;line-height:1.5"></div>
+        <div id="trustFlags" style="margin-bottom:18px"></div>
+        <div style="display:flex;gap:10px">
+          <button id="trustPublishBtn" onclick="confirmPublish()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Golos Text',sans-serif">Опубликовать всё равно</button>
+          <button onclick="closeTrustCheck()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:14px;cursor:pointer;font-family:'Golos Text',sans-serif">Редактировать</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ════ PROFILE PAGE ════ -->
@@ -1386,30 +1411,125 @@ async function aiGenerateDesc() {
   btn.disabled = false; btn.textContent = '✨ Написать с AI';
 }
 
+let _pendingJobData = null;
+
+function closeTrustCheck() {
+  document.getElementById('trustCheckOverlay').classList.add('hidden');
+}
+
+async function confirmPublish() {
+  if (!_pendingJobData) return;
+  closeTrustCheck();
+  const btn = document.getElementById('submitJobBtn');
+  btn.disabled = true; btn.textContent = 'Публикуем...';
+  try {
+    await api('POST', '/api/jobs', _pendingJobData);
+    document.getElementById('employerForm').classList.add('hidden');
+    document.getElementById('employerSuccess').classList.remove('hidden');
+    document.getElementById('successInfo').innerHTML = `<strong>${_pendingJobData.title}</strong> · ${_pendingJobData.company}`;
+    loadJobs();
+  } catch (e) { alert(e.message); }
+  btn.disabled = false; btn.textContent = 'Опубликовать вакансию →';
+  _pendingJobData = null;
+}
+
 async function submitJob() {
   if (!currentUser || currentUser.role !== 'employer') { openAuthModal('login'); return; }
   const title = document.getElementById('f-title').value;
   const company = document.getElementById('f-company').value;
   const contact = document.getElementById('f-contact').value;
   if (!title || !company || !contact) { alert('Заполните обязательные поля (*)'); return; }
-  const btn = document.getElementById('submitJobBtn');
-  btn.disabled = true; btn.textContent = 'Публикуем...';
+
+  const jobData = {
+    title, company, contact,
+    location: document.getElementById('f-location').value,
+    salary: document.getElementById('f-salary').value,
+    type: document.getElementById('f-type').value,
+    experience: document.getElementById('f-exp').value,
+    skills: document.getElementById('f-skills').value,
+    description: document.getElementById('f-desc').value,
+  };
+
+  // Запускаем AI проверку
+  _pendingJobData = jobData;
+  const overlay = document.getElementById('trustCheckOverlay');
+  overlay.classList.remove('hidden');
+  document.getElementById('trustCheckLoading').classList.remove('hidden');
+  document.getElementById('trustCheckResult').classList.add('hidden');
+
   try {
-    await api('POST', '/api/jobs', {
-      title, company, contact,
-      location: document.getElementById('f-location').value,
-      salary: document.getElementById('f-salary').value,
-      type: document.getElementById('f-type').value,
-      experience: document.getElementById('f-exp').value,
-      skills: document.getElementById('f-skills').value,
-      description: document.getElementById('f-desc').value,
-    });
-    document.getElementById('employerForm').classList.add('hidden');
-    document.getElementById('employerSuccess').classList.remove('hidden');
-    document.getElementById('successInfo').innerHTML = `<strong>${title}</strong> · ${company}`;
-    loadJobs();
-  } catch (e) { alert(e.message); }
-  btn.disabled = false; btn.textContent = 'Опубликовать вакансию →';
+    const check = await fetch(API + '/api/ai/check-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {}) },
+      body: JSON.stringify(jobData)
+    }).then(r => r.json());
+
+    document.getElementById('trustCheckLoading').classList.add('hidden');
+    document.getElementById('trustCheckResult').classList.remove('hidden');
+
+    const badge = document.getElementById('trustBadge');
+    const icon = document.getElementById('trustIcon');
+    const verdict = document.getElementById('trustVerdict');
+    const score = document.getElementById('trustScore');
+    const summary = document.getElementById('trustSummary');
+    const flags = document.getElementById('trustFlags');
+    const publishBtn = document.getElementById('trustPublishBtn');
+
+    if (check.verdict === 'ok') {
+      badge.style.background = 'rgba(16,185,129,.15)';
+      badge.style.border = '1px solid rgba(16,185,129,.4)';
+      icon.textContent = '✅';
+      verdict.textContent = 'Вакансия выглядит достоверно';
+      verdict.style.color = '#10b981';
+      publishBtn.textContent = '✅ Опубликовать';
+    } else if (check.verdict === 'warning') {
+      badge.style.background = 'rgba(245,158,11,.15)';
+      badge.style.border = '1px solid rgba(245,158,11,.4)';
+      icon.textContent = '⚠️';
+      verdict.textContent = 'Есть поводы для внимания';
+      verdict.style.color = '#f59e0b';
+      publishBtn.textContent = 'Опубликовать всё равно';
+    } else {
+      badge.style.background = 'rgba(239,68,68,.15)';
+      badge.style.border = '1px solid rgba(239,68,68,.4)';
+      icon.textContent = '🚨';
+      verdict.textContent = 'Вакансия похожа на мошенничество';
+      verdict.style.color = '#ef4444';
+      publishBtn.textContent = 'Опубликовать на свой риск';
+    }
+
+    score.textContent = `Оценка доверия: ${check.score}/100`;
+    summary.textContent = check.summary || '';
+
+    if (check.flags && check.flags.length) {
+      flags.innerHTML = check.flags.map(f =>
+        `<div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);margin-bottom:6px">
+          <span style="margin-top:1px">⚠</span><span>${f}</span>
+        </div>`
+      ).join('');
+    } else {
+      flags.innerHTML = '';
+    }
+
+    // Если ok — сразу публикуем без клика
+    if (check.verdict === 'ok') {
+      setTimeout(() => confirmPublish(), 1500);
+    }
+  } catch(e) {
+    // Если AI недоступен — публикуем без проверки
+    closeTrustCheck();
+    const btn = document.getElementById('submitJobBtn');
+    btn.disabled = true; btn.textContent = 'Публикуем...';
+    try {
+      await api('POST', '/api/jobs', _pendingJobData);
+      document.getElementById('employerForm').classList.add('hidden');
+      document.getElementById('employerSuccess').classList.remove('hidden');
+      document.getElementById('successInfo').innerHTML = `<strong>${_pendingJobData.title}</strong> · ${_pendingJobData.company}`;
+      loadJobs();
+    } catch (e) { alert(e.message); }
+    btn.disabled = false; btn.textContent = 'Опубликовать вакансию →';
+    _pendingJobData = null;
+  }
 }
 
 function resetEmployer() {
