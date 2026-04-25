@@ -512,7 +512,14 @@ async function api(method, path, body) {
     });
     clearTimeout(timeout);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
+    if (!res.ok) {
+      if (res.status === 401 && data.error && data.error.includes('устарела')) {
+        // Сессия устарела (Render сбросил БД) — выходим автоматически
+        doLogout();
+        throw new Error('Сессия устарела — войдите снова');
+      }
+      throw new Error(data.error || 'Ошибка сервера');
+    }
     return data;
   } catch (e) {
     clearTimeout(timeout);

@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../db');
 
 // Обязательная авторизация
 function authRequired(req, res, next) {
@@ -8,7 +9,13 @@ function authRequired(req, res, next) {
   }
   const token = header.split(' ')[1];
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    // Проверяем что пользователь ещё существует в БД (мог слететь после сброса /tmp)
+    const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(payload.id);
+    if (!user) {
+      return res.status(401).json({ error: 'Сессия устарела. Войдите снова.' });
+    }
+    req.user = { ...payload, ...user };
     next();
   } catch {
     return res.status(401).json({ error: 'Токен недействителен или истёк' });
@@ -20,7 +27,9 @@ function authOptional(req, res, next) {
   const header = req.headers.authorization;
   if (header && header.startsWith('Bearer ')) {
     try {
-      req.user = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET);
+      const payload = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET);
+      const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(payload.id);
+      if (user) req.user = { ...payload, ...user };
     } catch {}
   }
   next();

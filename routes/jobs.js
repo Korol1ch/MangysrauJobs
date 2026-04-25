@@ -173,6 +173,12 @@ router.post('/:id/apply', authRequired, async (req, res) => {
 
   if (!job) return res.status(404).json({ error: 'Вакансия не найдена' });
 
+  // Проверяем что соискатель существует в БД (мог слететь после сброса /tmp)
+  const seeker = db.prepare('SELECT name, phone, telegram_username FROM users WHERE id = ?').get(req.user.id);
+  if (!seeker) {
+    return res.status(401).json({ error: 'Сессия устарела. Войдите снова.' });
+  }
+
   try {
     db.prepare('INSERT INTO applications (job_id, user_id, message) VALUES (?, ?, ?)')
       .run(job.id, req.user.id, req.body.message || null);
@@ -180,11 +186,13 @@ router.post('/:id/apply', authRequired, async (req, res) => {
     if (e.message.includes('UNIQUE')) {
       return res.status(409).json({ error: 'Вы уже откликались на эту вакансию' });
     }
+    if (e.message.includes('FOREIGN KEY')) {
+      return res.status(401).json({ error: 'Сессия устарела. Войдите снова.' });
+    }
     throw e;
   }
 
   // Уведомление работодателю в Telegram
-  const seeker = db.prepare('SELECT name, phone, telegram_username FROM users WHERE id = ?').get(req.user.id);
   if (job.employer_tg_id) {
     notifyNewApplication(job.employer_tg_id, {
       jobTitle: job.title,
