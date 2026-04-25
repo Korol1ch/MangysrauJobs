@@ -41,6 +41,7 @@ app.use(express.static(path.join(__dirname)));
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/jobs',     require('./routes/jobs'));
 app.use('/api/telegram', require('./routes/telegram'));
+app.use('/api/ai',       require('./routes/ai'));
 
 // ── HEALTH CHECK ──
 app.get('/api/health', (req, res) => {
