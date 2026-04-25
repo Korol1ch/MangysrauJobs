@@ -45,7 +45,15 @@ app.use('/api/ai',       require('./routes/ai'));
 
 // ── HEALTH CHECK ──
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', platform: 'МангыстауРаботает', time: new Date().toISOString() });
+  const db = require('./db');
+  res.json({
+    status: 'ok',
+    platform: 'МангыстауРаботает',
+    time: new Date().toISOString(),
+    database: db.dialect || 'unknown',
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+  });
 });
 
 // ── SPA fallback: всё что не /api → index.html ──
