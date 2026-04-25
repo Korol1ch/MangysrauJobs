@@ -15,11 +15,29 @@
   --ai:#7c3aed;--ai2:#a855f7;
   --green:#10b981;--blue:#3b82f6;--red:#ef4444;
   --r:12px;
+  --navbar-bg:rgba(10,14,26,0.95);
+  --hero-bg:linear-gradient(135deg,#0a0e1a 0%,#1a1035 50%,#0d1a2e 100%);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb;--bg2:#eaecf4;--bg3:#dde2ee;--card:#ffffff;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1a1f2e;--muted:#5a6378;
+  --accent:#ff6b35;--accent2:#d97706;
+  --ai:#7c3aed;--ai2:#7c3aed;
+  --green:#059669;--blue:#2563eb;--red:#dc2626;
+  --navbar-bg:rgba(244,246,251,0.97);
+  --hero-bg:linear-gradient(135deg,#eef0fb 0%,#e8e2f8 50%,#e4eef8 100%);
 }
 body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
 
+
+/* THEME & LANG TOGGLE */
+.tl-btn{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tl-btn.lang-active{background:rgba(255,107,53,.12);border-color:var(--accent);color:var(--accent)}
+
 /* NAVBAR */
-.navbar{position:sticky;top:0;z-index:100;background:rgba(10,14,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.navbar{position:sticky;top:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
 .navbar-inner{max-width:1200px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;gap:16px}
 .brand{display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
 .brand-name{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;color:var(--text)}
@@ -64,7 +82,7 @@ textarea.form-input{resize:vertical;min-height:90px}
 .success-msg.show{display:block}
 
 /* HERO */
-.hero{background:linear-gradient(135deg,#0a0e1a 0%,#1a1035 50%,#0d1a2e 100%);border-bottom:1px solid var(--border);padding:40px 20px 28px;position:relative;overflow:hidden}
+.hero{background:var(--hero-bg);border-bottom:1px solid var(--border);padding:40px 20px 28px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,107,53,0.12) 0%,transparent 70%);pointer-events:none}
 .hero-inner{max-width:1200px;margin:0 auto}
 .hero-title{font-family:'Unbounded',sans-serif;font-size:clamp(22px,4vw,36px);font-weight:700;line-height:1.2;margin-bottom:8px}
@@ -195,7 +213,8 @@ textarea.form-input{resize:vertical;min-height:90px}
   .brand-tag{display:none}
   .btn-login{font-size:11px;padding:4px 8px;white-space:nowrap}
   .btn-seek{font-size:11px;padding:4px 8px}
-  .nav-right{gap:6px;min-width:0;overflow:hidden}
+  .nav-right{gap:4px;min-width:0;overflow:hidden}
+  .tl-btn .tl-label{display:none}
   .burger-btn{display:flex!important;flex-shrink:0}
   .user-toggle{display:none}
   .user-chip{font-size:12px;padding:4px 8px;max-width:120px;overflow:hidden}
@@ -283,13 +302,13 @@ textarea.form-input{resize:vertical;min-height:90px}
       <span class="brand-tag">Актау</span>
     </div>
     <div class="nav-links">
-      <button class="nav-btn active" id="nav-jobs" onclick="showPage('jobs')">Вакансии</button>
-      <button class="nav-btn" id="nav-employer" onclick="showPage('employer')">Разместить вакансию</button>
-      <button class="nav-btn" id="nav-profile" onclick="showPage('profile')">Мой профиль</button>
+      <button class="nav-btn active" id="nav-jobs" onclick="showPage('jobs')" data-i18n="nav_jobs">Вакансии</button>
+      <button class="nav-btn" id="nav-employer" onclick="showPage('employer')" data-i18n="nav_employer">Разместить вакансию</button>
+      <button class="nav-btn" id="nav-profile" onclick="showPage('profile')" data-i18n="nav_profile">Мой профиль</button>
     </div>
     <div class="nav-right">
       <div id="navGuest" class="hidden">
-        <button class="btn-login" onclick="openAuthModal('login')">Войти / Регистрация</button>
+        <button class="btn-login" onclick="openAuthModal('login')" data-i18n="nav_login">Войти / Регистрация</button>
       </div>
       <div id="navUser" class="hidden">
         <div class="user-chip" onclick="showPage('profile')">
@@ -298,9 +317,16 @@ textarea.form-input{resize:vertical;min-height:90px}
         </div>
       </div>
       <div class="user-toggle">
-        <button class="toggle-btn active" id="toggle-seeker" onclick="setRole('seeker')">Ищу работу</button>
-        <button class="toggle-btn" id="toggle-employer2" onclick="setRole('employer')">Работодатель</button>
+        <button class="toggle-btn active" id="toggle-seeker" onclick="setRole('seeker')" data-i18n="toggle_seeker">Ищу работу</button>
+        <button class="toggle-btn" id="toggle-employer2" onclick="setRole('employer')" data-i18n="toggle_employer">Работодатель</button>
       </div>
+      <!-- Lang & Theme -->
+      <button class="tl-btn" id="langBtn" onclick="toggleLang()" title="Сменить язык">
+        <span class="tl-label" id="langLabel">КАЗ</span>
+      </button>
+      <button class="tl-btn" id="themeBtn" onclick="toggleTheme()" title="Сменить тему">
+        <span id="themeIcon">☀️</span>
+      </button>
       <!-- Бургер для мобайла -->
       <button class="burger-btn" id="burgerBtn" onclick="toggleMobileMenu()" aria-label="Меню">
         <span></span><span></span><span></span>
@@ -309,9 +335,9 @@ textarea.form-input{resize:vertical;min-height:90px}
   </div>
   <!-- Мобильное меню -->
   <div class="mobile-menu hidden" id="mobileMenu">
-    <button class="mobile-nav-btn" onclick="showPage('jobs');toggleMobileMenu()">📋 Вакансии</button>
-    <button class="mobile-nav-btn" onclick="showPage('employer');toggleMobileMenu()">➕ Разместить вакансию</button>
-    <button class="mobile-nav-btn" onclick="showPage('profile');toggleMobileMenu()">👤 Мой профиль</button>
+    <button class="mobile-nav-btn" onclick="showPage('jobs');toggleMobileMenu()" data-i18n="mob_jobs">📋 Вакансии</button>
+    <button class="mobile-nav-btn" onclick="showPage('employer');toggleMobileMenu()" data-i18n="mob_employer">➕ Разместить вакансию</button>
+    <button class="mobile-nav-btn" onclick="showPage('profile');toggleMobileMenu()" data-i18n="mob_profile">👤 Мой профиль</button>
   </div>
 </nav>
 
@@ -319,21 +345,21 @@ textarea.form-input{resize:vertical;min-height:90px}
 <div class="modal-overlay hidden" id="applyModal" onclick="closeApplyModal(event)">
   <div class="modal" style="max-width:480px">
     <button class="modal-close" onclick="closeApplyModal()">✕</button>
-    <h2 class="modal-title">Отклик на вакансию</h2>
+    <h2 class="modal-title" data-i18n="apply_title">Отклик на вакансию</h2>
     <p class="modal-sub" id="applyJobTitle" style="color:var(--accent);font-weight:600"></p>
     <div class="form-group" style="margin-top:16px">
-      <label class="form-label">О себе / Резюме *</label>
-      <textarea id="applyResume" class="form-input" rows="5" placeholder="Расскажите о своём опыте, навыках, почему подходите на эту вакансию..." style="resize:vertical;min-height:120px"></textarea>
+      <label class="form-label" data-i18n="apply_resume_label">О себе / Резюме *</label>
+      <textarea id="applyResume" class="form-input" rows="5" data-i18n-placeholder="apply_resume_ph" placeholder="Расскажите о своём опыте, навыках, почему подходите на эту вакансию..." style="resize:vertical;min-height:120px"></textarea>
     </div>
     <div class="form-group">
-      <label class="form-label">Контактный телефон</label>
+      <label class="form-label" data-i18n="apply_phone_label">Контактный телефон</label>
       <input class="form-input" id="applyPhone" placeholder="+7 (700) 000-00-00"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Ожидаемая зарплата</label>
+      <label class="form-label" data-i18n="apply_salary_label">Ожидаемая зарплата</label>
       <input class="form-input" id="applySalary" placeholder="350 000 ₸ или договорная"/>
     </div>
-    <button class="btn-submit" id="applySubmitBtn" onclick="submitApply()">📩 Отправить отклик</button>
+    <button class="btn-submit" id="applySubmitBtn" onclick="submitApply()" data-i18n="apply_send">📩 Отправить отклик</button>
     <div id="applyError" style="color:#ef4444;font-size:13px;margin-top:8px;display:none"></div>
   </div>
 </div>
@@ -342,19 +368,19 @@ textarea.form-input{resize:vertical;min-height:90px}
 <div class="modal-overlay hidden" id="authModal">
   <div class="modal">
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
-    <h2 class="modal-title">Добро пожаловать</h2>
-    <p class="modal-sub">МангыстауРаботает — работа в Мангистау</p>
+    <h2 class="modal-title" data-i18n="auth_welcome">Добро пожаловать</h2>
+    <p class="modal-sub" data-i18n="auth_sub">МангыстауРаботает — работа в Мангистау</p>
     <div class="modal-tabs">
-      <button class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">Войти</button>
-      <button class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">Регистрация</button>
+      <button class="modal-tab active" id="tabLogin" data-i18n="auth_login_tab" onclick="switchAuthTab('login')">Войти</button>
+      <button class="modal-tab" id="tabRegister" data-i18n="auth_reg_tab" onclick="switchAuthTab('register')">Регистрация</button>
     </div>
     <div id="authError" class="error-msg"></div>
 
     <!-- LOGIN FORM -->
     <div id="loginForm">
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="loginEmail" type="email" placeholder="email@mail.ru"/></div>
-      <div class="form-group"><label class="form-label">Пароль</label><input class="form-input" id="loginPassword" type="password" placeholder="Ваш пароль" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Войти</button>
+      <div class="form-group"><label class="form-label" data-i18n="auth_password">Пароль</label><input class="form-input" id="loginPassword" type="password" placeholder="Ваш пароль" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="btn-primary" id="loginBtn" data-i18n="auth_login_btn" onclick="doLogin()">Войти</button>
     </div>
 
     <!-- REGISTER FORM -->
@@ -376,7 +402,7 @@ textarea.form-input{resize:vertical;min-height:90px}
       <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="regEmail" type="email" placeholder="email@mail.ru"/></div>
       <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" id="regPhone" placeholder="+7 700 000 0000"/></div>
       <div class="form-group"><label class="form-label">Пароль * (мин. 6 символов)</label><input class="form-input" id="regPassword" type="password" placeholder="Придумайте пароль" onkeydown="if(event.key==='Enter')doRegister()"/></div>
-      <button class="btn-primary" id="registerBtn" onclick="doRegister()">Зарегистрироваться</button>
+      <button class="btn-primary" id="registerBtn" data-i18n="auth_register_btn" onclick="doRegister()">Зарегистрироваться</button>
     </div>
   </div>
 </div>
@@ -385,35 +411,35 @@ textarea.form-input{resize:vertical;min-height:90px}
 <div id="page-jobs">
   <div class="hero">
     <div class="hero-inner">
-      <h1 class="hero-title">Работа в <span class="accent">Мангистау</span></h1>
+      <h1 class="hero-title" data-i18n="hero_title">Работа в <span class="accent">Мангистау</span></h1>
       <p class="hero-sub" id="heroSub">Актуальные вакансии · AI подберёт лучшие для вас</p>
       <div class="search-bar">
         <span>🔍</span>
-        <input class="search-input" id="searchInput" placeholder="Должность, компания или навык..." oninput="debouncedSearch()"/>
+        <input class="search-input" id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Должность, компания или навык..." oninput="debouncedSearch()"/>
         <button class="search-clear" onclick="document.getElementById('searchInput').value='';loadJobs()">✕</button>
       </div>
     </div>
     <div class="stats-row">
-      <div class="stat"><span class="stat-num">700к+</span><span class="stat-label">Жителей области</span></div>
-      <div class="stat"><span class="stat-num" id="statJobs">—</span><span class="stat-label">Активных вакансий</span></div>
-      <div class="stat"><span class="stat-num">AI</span><span class="stat-label">Матчинг навыков</span></div>
-      <div class="stat"><span class="stat-num">TG</span><span class="stat-label">Уведомления</span></div>
+      <div class="stat"><span class="stat-num">700к+</span><span class="stat-label" data-i18n="stat_residents">Жителей области</span></div>
+      <div class="stat"><span class="stat-num" id="statJobs">—</span><span class="stat-label" data-i18n="stat_jobs">Активных вакансий</span></div>
+      <div class="stat"><span class="stat-num">AI</span><span class="stat-label" data-i18n="stat_ai">Матчинг навыков</span></div>
+      <div class="stat"><span class="stat-num">TG</span><span class="stat-label" data-i18n="stat_tg">Уведомления</span></div>
     </div>
   </div>
 
   <div class="content-wrap">
     <aside class="filters">
       <div class="filter-group">
-        <div class="filter-label">Тип занятости</div>
-        <button class="filter-chip active" onclick="setFilter('type','Все',this)">Все</button>
-        <button class="filter-chip" onclick="setFilter('type','Полная',this)">Полная</button>
-        <button class="filter-chip" onclick="setFilter('type','Частичная',this)">Частичная</button>
-        <button class="filter-chip" onclick="setFilter('type','Подработка',this)">Подработка</button>
+        <div class="filter-label" data-i18n="filter_type">Тип занятости</div>
+        <button class="filter-chip active" data-i18n="type_all" onclick="setFilter('type','Все',this)">Все</button>
+        <button class="filter-chip" data-i18n="type_full" onclick="setFilter('type','Полная',this)">Полная</button>
+        <button class="filter-chip" data-i18n="type_part" onclick="setFilter('type','Частичная',this)">Частичная</button>
+        <button class="filter-chip" data-i18n="type_side" onclick="setFilter('type','Подработка',this)">Подработка</button>
       </div>
       <div class="filter-group">
-        <div class="filter-label">Сортировка</div>
-        <button class="filter-chip active" id="sortDate" onclick="setSort('date',this)">По дате</button>
-        <button class="filter-chip" id="sortAi" onclick="setSort('ai',this)">✨ AI фильтр</button>
+        <div class="filter-label" data-i18n="filter_sort">Сортировка</div>
+        <button class="filter-chip active" id="sortDate" data-i18n="sort_date" onclick="setSort('date',this)">По дате</button>
+        <button class="filter-chip" id="sortAi" data-i18n="sort_ai" onclick="setSort('ai',this)">✨ AI фильтр</button>
       </div>
       <div id="appliedBadge" class="hidden" style="background:rgba(16,185,129,.1);border:1px solid var(--green);color:var(--green);border-radius:8px;padding:10px 12px;font-size:13px"></div>
     </aside>
@@ -423,7 +449,7 @@ textarea.form-input{resize:vertical;min-height:90px}
         <span class="list-count" id="listCount">Загрузка...</span>
       </div>
       <div class="jobs-list" id="jobsList">
-        <div class="loading-bar"><div class="spinner"></div> Загружаем вакансии...</div>
+        <div class="loading-bar"><div class="spinner"></div> <span data-i18n="jobs_loading_text">Загружаем вакансии...</span></div>
       </div>
     </div>
   </div>
@@ -432,46 +458,46 @@ textarea.form-input{resize:vertical;min-height:90px}
 <!-- ════ EMPLOYER PAGE ════ -->
 <div id="page-employer" class="hidden">
   <div id="employerForm" class="page-wrap">
-    <h1 class="page-title">Разместить вакансию</h1>
-    <p class="page-sub">Бесплатно · Публикация мгновенная · AI поможет с описанием</p>
+    <h1 class="page-title" data-i18n="emp_title">Разместить вакансию</h1>
+    <p class="page-sub" data-i18n="emp_sub">Бесплатно · Публикация мгновенная · AI поможет с описанием</p>
     <div id="employerAuthWarn" class="hidden" style="background:rgba(255,107,53,.1);border:1px solid var(--accent);border-radius:10px;padding:16px 18px;margin-bottom:20px;font-size:14px">
       ⚠️ Войдите как <strong>Работодатель</strong> чтобы публиковать вакансии.
       <button onclick="openAuthModal('register')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;margin-left:10px;cursor:pointer;font-family:'Golos Text',sans-serif;font-size:13px">Регистрация</button>
     </div>
     <div class="form-grid">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Должность *</label><input class="form-input" id="f-title" placeholder="Повар, Продавец, Сварщик..."/></div>
-        <div class="form-group"><label class="form-label">Компания / ИП *</label><input class="form-input" id="f-company" placeholder="Название компании"/></div>
+        <div class="form-group"><label class="form-label" data-i18n="emp_position">Должность *</label><input class="form-input" id="f-title" placeholder="Повар, Продавец, Сварщик..."/></div>
+        <div class="form-group"><label class="form-label" data-i18n="emp_company">Компания / ИП *</label><input class="form-input" id="f-company" placeholder="Название компании"/></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Зарплата</label><input class="form-input" id="f-salary" placeholder="150 000 – 200 000 ₸"/></div>
-        <div class="form-group"><label class="form-label">Район</label><input class="form-input" id="f-location" placeholder="Актау, 5 мкр"/></div>
+        <div class="form-group"><label class="form-label" data-i18n="emp_salary">Зарплата</label><input class="form-input" id="f-salary" placeholder="150 000 – 200 000 ₸"/></div>
+        <div class="form-group"><label class="form-label" data-i18n="emp_location">Район</label><input class="form-input" id="f-location" placeholder="Актау, 5 мкр"/></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Тип занятости</label>
+        <div class="form-group"><label class="form-label" data-i18n="emp_type">Тип занятости</label>
           <select class="form-input" id="f-type"><option>Полная</option><option>Частичная</option><option>Подработка</option></select>
         </div>
-        <div class="form-group"><label class="form-label">Опыт</label>
+        <div class="form-group"><label class="form-label" data-i18n="emp_exp">Опыт</label>
           <select class="form-input" id="f-exp"><option>Без опыта</option><option>От 6 месяцев</option><option>От 1 года</option><option>От 2 лет</option><option>От 3 лет</option></select>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Навыки (через запятую)</label><input class="form-input" id="f-skills" placeholder="кассовый аппарат, 1С, коммуникабельность"/></div>
+      <div class="form-group"><label class="form-label" data-i18n="emp_skills">Навыки (через запятую)</label><input class="form-input" id="f-skills" placeholder="кассовый аппарат, 1С, коммуникабельность"/></div>
       <div class="form-group">
-        <div class="desc-row"><label class="form-label">Описание вакансии</label><button class="btn-ai" id="aiDescBtn" onclick="aiGenerateDesc()">✨ Написать с AI</button></div>
+        <div class="desc-row"><label class="form-label" data-i18n="emp_desc">Описание вакансии</label><button class="btn-ai" id="aiDescBtn" onclick="aiGenerateDesc()" data-i18n="emp_ai_write">✨ Написать с AI</button></div>
         <textarea class="form-input" id="f-desc" rows="4" placeholder="Опишите обязанности, условия..."></textarea>
         <div class="ai-hint" id="aiDescHint">✨ AI сгенерировал текст — отредактируйте если нужно</div>
       </div>
-      <div class="form-group"><label class="form-label">Контакт (Telegram / телефон) *</label><input class="form-input" id="f-contact" placeholder="@username или +7 700 000 0000"/></div>
-      <button class="btn-submit" id="submitJobBtn" onclick="submitJob()">Опубликовать вакансию →</button>
+      <div class="form-group"><label class="form-label" data-i18n="emp_contact">Контакт (Telegram / телефон) *</label><input class="form-input" id="f-contact" placeholder="@username или +7 700 000 0000"/></div>
+      <button class="btn-submit" id="submitJobBtn" data-i18n="emp_publish" onclick="submitJob()">Опубликовать вакансию →</button>
     </div>
   </div>
   <div id="employerSuccess" class="hidden">
     <div class="success-card">
       <div class="success-icon">🎉</div>
-      <h2>Вакансия опубликована!</h2>
-      <p>Соискатели уже видят вашу вакансию. AI-матчинг подберёт лучших кандидатов.</p>
+      <h2 data-i18n="emp_success_title">Вакансия опубликована!</h2>
+      <p data-i18n="emp_success_sub">Соискатели уже видят вашу вакансию. AI-матчинг подберёт лучших кандидатов.</p>
       <div class="success-info" id="successInfo"></div>
-      <button class="btn-submit" onclick="resetEmployer()">Разместить ещё</button>
+      <button class="btn-submit" onclick="resetEmployer()" data-i18n="emp_success_more">Разместить ещё</button>
     </div>
   </div>
 </div>
@@ -481,9 +507,9 @@ textarea.form-input{resize:vertical;min-height:90px}
   <div class="page-wrap">
     <!-- Гость -->
     <div id="profileGuest">
-      <h1 class="page-title">Мой профиль</h1>
-      <p class="page-sub">Войдите чтобы видеть свои отклики и настроить Telegram-уведомления</p>
-      <button class="btn-submit" onclick="openAuthModal('login')">Войти в аккаунт</button>
+      <h1 class="page-title" data-i18n="prof_title">Мой профиль</h1>
+      <p class="page-sub" data-i18n="prof_guest_sub">Войдите чтобы видеть свои отклики и настроить Telegram-уведомления</p>
+      <button class="btn-submit" onclick="openAuthModal('login')" data-i18n="prof_guest_btn">Войти в аккаунт</button>
     </div>
     <!-- Авторизованный -->
     <div id="profileAuth" class="hidden">
@@ -493,11 +519,11 @@ textarea.form-input{resize:vertical;min-height:90px}
         <div style="display:flex;flex-direction:column;gap:16px">
           <!-- Telegram привязка -->
           <div class="card">
-            <div class="card-title">📱 Telegram уведомления</div>
+            <div class="card-title" data-i18n="prof_tg_title">📱 Telegram уведомления</div>
             <div class="tg-box">
               <div class="tg-row">
-                <span class="tg-label">Статус:</span>
-                <span class="tg-status" id="tgStatus">Не привязан</span>
+                <span class="tg-label" data-i18n="prof_tg_status">Статус:</span>
+                <span class="tg-status" id="tgStatus" data-i18n="prof_tg_unlinked">Не привязан</span>
               </div>
               <div id="tgCodeArea" class="hidden">
                 <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Отправь этот код боту <strong style="color:var(--text)">@MangystauJobsBot</strong>:</p>
@@ -506,44 +532,44 @@ textarea.form-input{resize:vertical;min-height:90px}
                 <p style="font-size:12px;color:var(--muted);margin-top:6px">Команда: <code style="color:var(--accent2)">/link КОД</code></p>
               </div>
               <div style="display:flex;gap:8px">
-                <button class="btn-sm" id="tgLinkBtn" onclick="generateTgCode()">Получить код</button>
-                <button class="btn-sm hidden" id="tgUnlinkBtn" onclick="unlinkTelegram()" style="color:var(--red)">Отвязать</button>
+                <button class="btn-sm" id="tgLinkBtn" onclick="generateTgCode()" data-i18n="prof_tg_get_code">Получить код</button>
+                <button class="btn-sm hidden" id="tgUnlinkBtn" onclick="unlinkTelegram()" style="color:var(--red)" data-i18n="prof_tg_unlink">Отвязать</button>
               </div>
             </div>
           </div>
           <!-- Мои отклики (для соискателей) -->
           <div class="card" id="myApplicationsCard">
-            <div class="card-title">📋 Мои отклики</div>
+            <div class="card-title" data-i18n="prof_apps_title">📋 Мои отклики</div>
             <div id="myApplicationsList"><div style="color:var(--muted);font-size:13px">Загрузка...</div></div>
           </div>
           <!-- Мои объявления (для работодателей) -->
           <div class="card" id="myJobsCard" style="display:none">
-            <div class="card-title">📌 Мои объявления</div>
+            <div class="card-title" data-i18n="prof_jobs_title">📌 Мои объявления</div>
             <div id="myJobsList"><div style="color:var(--muted);font-size:13px">Загрузка...</div></div>
             <div style="margin-top:12px">
-              <button class="btn-sm" onclick="showPage('employer')">+ Разместить новую</button>
+              <button class="btn-sm" onclick="showPage('employer')" data-i18n="prof_new_job">+ Разместить новую</button>
             </div>
           </div>
         </div>
         <!-- AI анализ — только для соискателей -->
         <div class="card" id="aiAnalysisCard">
-          <div class="card-title">✨ Мой профиль соискателя</div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Заполните профиль — AI фильтр на главной странице будет подбирать вакансии именно под вас</p>
+          <div class="card-title" data-i18n="prof_seeker_title">✨ Мой профиль соискателя</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px" data-i18n="prof_seeker_sub">Заполните профиль — AI фильтр на главной странице будет подбирать вакансии именно под вас</p>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group">
-              <label class="form-label">Желаемая профессия</label>
+              <label class="form-label" data-i18n="p_desired">Желаемая профессия</label>
               <input class="form-input" id="p-desired" placeholder="Менеджер, водитель, бухгалтер..." oninput="saveSeekerProfile()"/>
             </div>
             <div class="form-group">
-              <label class="form-label">Желаемая зарплата (₸)</label>
+              <label class="form-label" data-i18n="p_salary_min">Желаемая зарплата (₸)</label>
               <input class="form-input" id="p-salary-min" placeholder="от 200 000 ₸" oninput="saveSeekerProfile()"/>
             </div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group">
-              <label class="form-label">Желаемый график</label>
+              <label class="form-label" data-i18n="p_schedule">Желаемый график</label>
               <select class="form-input" id="p-schedule" onchange="saveSeekerProfile()">
                 <option value="">Любой</option>
                 <option value="Полный день">Полный день</option>
@@ -554,7 +580,7 @@ textarea.form-input{resize:vertical;min-height:90px}
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Тип занятости</label>
+              <label class="form-label" data-i18n="p_type">Тип занятости</label>
               <select class="form-input" id="p-type" onchange="saveSeekerProfile()">
                 <option value="">Любой</option>
                 <option value="Полная">Полная</option>
@@ -565,13 +591,13 @@ textarea.form-input{resize:vertical;min-height:90px}
           </div>
 
           <div class="form-group">
-            <label class="form-label">Навыки</label>
+            <label class="form-label" data-i18n="p_skills">Навыки</label>
             <input class="form-input" id="p-skills" placeholder="Продажи, 1С, Excel, вождение категории B..." oninput="saveSeekerProfile()"/>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group">
-              <label class="form-label">Опыт работы</label>
+              <label class="form-label" data-i18n="p_exp_level">Опыт работы</label>
               <select class="form-input" id="p-exp-level" onchange="saveSeekerProfile()">
                 <option value="Без опыта">Без опыта</option>
                 <option value="Менее 1 года">Менее 1 года</option>
@@ -581,7 +607,7 @@ textarea.form-input{resize:vertical;min-height:90px}
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Образование</label>
+              <label class="form-label" data-i18n="p_education">Образование</label>
               <select class="form-input" id="p-education" onchange="saveSeekerProfile()">
                 <option value="">Не указано</option>
                 <option value="Среднее">Среднее</option>
@@ -592,17 +618,17 @@ textarea.form-input{resize:vertical;min-height:90px}
           </div>
 
           <div class="form-group">
-            <label class="form-label">О себе / дополнительно</label>
+            <label class="form-label" data-i18n="p_about">О себе / дополнительно</label>
             <textarea class="form-input" id="p-about" rows="2" placeholder="Права категории B, готов к командировкам, знаю казахский..." oninput="saveSeekerProfile()"></textarea>
           </div>
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
-            <button class="btn-submit" id="analyzeBtn" onclick="analyzeProfile()" style="flex:1;min-width:160px">✨ AI анализ профиля</button>
-            <button class="btn-submit" onclick="goToAIFilter()" style="flex:1;min-width:160px;background:var(--bg3);color:var(--text);border:1px solid var(--border)">🔍 AI фильтр вакансий</button>
+            <button class="btn-submit" id="analyzeBtn" onclick="analyzeProfile()" style="flex:1;min-width:160px" data-i18n="prof_ai_btn">✨ AI анализ профиля</button>
+            <button class="btn-submit" onclick="goToAIFilter()" style="flex:1;min-width:160px;background:var(--bg3);color:var(--text);border:1px solid var(--border)" data-i18n="prof_ai_filter_btn">🔍 AI фильтр вакансий</button>
           </div>
 
           <div class="ai-placeholder" id="aiPlaceholder" style="min-height:80px;margin-top:14px">
-            <p style="font-size:13px">Нажмите «AI анализ профиля» — получите советы и подходящие вакансии</p>
+            <p style="font-size:13px" data-i18n="prof_ai_hint">Нажмите «AI анализ профиля» — получите советы и подходящие вакансии</p>
           </div>
           <div class="ai-placeholder hidden" id="aiLoading" style="min-height:80px">
             <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
@@ -611,8 +637,8 @@ textarea.form-input{resize:vertical;min-height:90px}
         </div>
       </div>
       <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
-        <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer">Выйти</button>
-        <button onclick="confirmDeleteAccount()" style="background:none;border:1px solid #ef4444;color:#ef4444;border-radius:8px;padding:8px 18px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer">Удалить аккаунт</button>
+        <button onclick="doLogout()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer" data-i18n="prof_logout">Выйти</button>
+        <button onclick="confirmDeleteAccount()" style="background:none;border:1px solid #ef4444;color:#ef4444;border-radius:8px;padding:8px 18px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer" data-i18n="prof_delete">Удалить аккаунт</button>
       </div>
     </div>
   </div>
@@ -638,6 +664,272 @@ let expandedId = null;
 let appliedIds = new Set();
 let searchTimer = null;
 
+
+// ════════════════════════════════════════
+//  TRANSLATIONS
+// ════════════════════════════════════════
+const TRANSLATIONS = {
+  ru: {
+    nav_jobs: 'Вакансии',
+    nav_employer: 'Разместить вакансию',
+    nav_profile: 'Мой профиль',
+    nav_login: 'Войти / Регистрация',
+    mob_jobs: '📋 Вакансии',
+    mob_employer: '➕ Разместить вакансию',
+    mob_profile: '👤 Мой профиль',
+    toggle_seeker: 'Ищу работу',
+    toggle_employer: 'Работодатель',
+    hero_title: 'Работа в <span class="accent">Мангистау</span>',
+    hero_sub_tpl: '{n} вакансий прямо сейчас · AI подберёт лучшие',
+    hero_sub_default: 'Актуальные вакансии · AI подберёт лучшие для вас',
+    search_placeholder: 'Должность, компания или навык...',
+    stat_residents: 'Жителей области',
+    stat_jobs: 'Активных вакансий',
+    stat_ai: 'Матчинг навыков',
+    stat_tg: 'Уведомления',
+    filter_type: 'Тип занятости',
+    filter_sort: 'Сортировка',
+    type_all: 'Все',
+    type_full: 'Полная',
+    type_part: 'Частичная',
+    type_side: 'Подработка',
+    sort_date: 'По дате',
+    sort_ai: '✨ AI фильтр',
+    list_loading: 'Загрузка...',
+    jobs_loading: '<div class="loading-bar"><div class="spinner"></div> <span data-i18n="jobs_loading_text">Загружаем вакансии...</span></div>',
+    apply_title: 'Отклик на вакансию',
+    apply_resume_label: 'О себе / Резюме *',
+    apply_resume_ph: 'Расскажите о своём опыте, навыках, почему подходите на эту вакансию...',
+    apply_phone_label: 'Контактный телефон',
+    apply_salary_label: 'Ожидаемая зарплата',
+    apply_salary_ph: '350 000 ₸ или договорная',
+    apply_send: '📩 Отправить отклик',
+    auth_welcome: 'Добро пожаловать',
+    auth_sub: 'МангыстауРаботает — работа в Мангистау',
+    auth_login_tab: 'Войти',
+    auth_reg_tab: 'Регистрация',
+    auth_password: 'Пароль',
+    auth_login_btn: 'Войти',
+    auth_register_btn: 'Зарегистрироваться',
+    emp_title: 'Разместить вакансию',
+    emp_sub: 'Бесплатно · Публикация мгновенная · AI поможет с описанием',
+    emp_position: 'Должность *',
+    emp_company: 'Компания / ИП *',
+    emp_salary: 'Зарплата',
+    emp_location: 'Район',
+    emp_type: 'Тип занятости',
+    emp_exp: 'Опыт',
+    emp_skills: 'Навыки (через запятую)',
+    emp_desc: 'Описание вакансии',
+    emp_ai_write: '✨ Написать с AI',
+    emp_contact: 'Контакт (Telegram / телефон) *',
+    emp_publish: 'Опубликовать вакансию →',
+    emp_success_title: 'Вакансия опубликована!',
+    emp_success_sub: 'Соискатели уже видят вашу вакансию. AI-матчинг подберёт лучших кандидатов.',
+    emp_success_more: 'Разместить ещё',
+    prof_title: 'Мой профиль',
+    prof_guest_sub: 'Войдите чтобы видеть свои отклики и настроить Telegram-уведомления',
+    prof_guest_btn: 'Войти в аккаунт',
+    prof_tg_title: '📱 Telegram уведомления',
+    prof_tg_status: 'Статус:',
+    prof_tg_unlinked: 'Не привязан',
+    prof_tg_get_code: 'Получить код',
+    prof_tg_unlink: 'Отвязать',
+    prof_apps_title: '📋 Мои отклики',
+    prof_jobs_title: '📌 Мои объявления',
+    prof_seeker_title: '✨ Мой профиль соискателя',
+    prof_seeker_sub: 'Заполните профиль — AI фильтр на главной странице будет подбирать вакансии именно под вас',
+    prof_ai_btn: '✨ AI анализ профиля',
+    prof_ai_filter_btn: '🔍 AI фильтр вакансий',
+    prof_ai_hint: 'Нажмите «AI анализ профиля» — получите советы и подходящие вакансии',
+    prof_logout: 'Выйти',
+    prof_delete: 'Удалить аккаунт',
+    prof_new_job: '+ Разместить новую',
+    prof_no_apps: 'Вы ещё не откликались на вакансии',
+    // Profile form labels
+    p_desired: 'Желаемая профессия',
+    p_salary_min: 'Желаемая зарплата (₸)',
+    p_schedule: 'Желаемый график',
+    p_type: 'Тип занятости',
+    p_skills: 'Навыки',
+    p_exp_level: 'Опыт работы',
+    p_education: 'Образование',
+    p_about: 'О себе / дополнительно',
+    // Errors/status
+    server_wake: '⏳ Сервер просыпается, подождите до 60 сек...',
+    jobs_error: '⚠️ Не удалось загрузить вакансии. Обнови страницу через минуту.',
+    ai_no_profile: '⚠️ Заполни профиль в разделе <b>Мой профиль</b> — тогда AI подберёт подходящие вакансии.',
+    ai_loading: '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI подбирает вакансии под ваш профиль...</p></div>',
+    ai_no_match: '🤖 AI не нашёл подходящих вакансий по вашему профилю.<br><span style="font-size:12px">Попробуйте заполнить профиль подробнее или посмотрите все вакансии.</span>',
+    ai_found: '🤖 AI нашёл {n} подходящих вакансий',
+    ai_error: '⚠️ Ошибка AI фильтра: {msg}.',
+    no_jobs_filter: 'Нет вакансий для фильтрации.',
+    expand_hint: t('expand_hint'),
+    collapse_hint: t('collapse_hint'),
+    apply_btn: t('apply_btn'),
+    applied_btn: t('applied_btn'),
+    tg_notify: t('tg_notify'),
+    posted_at: t('posted_at'),
+    days_ago: t('days_ago'),
+    today: t('today'),
+  },
+  kz: {
+    nav_jobs: 'Жұмыс орындары',
+    nav_employer: 'Вакансия орналастыру',
+    nav_profile: 'Менің профилім',
+    nav_login: 'Кіру / Тіркелу',
+    mob_jobs: '📋 Жұмыс орындары',
+    mob_employer: '➕ Вакансия орналастыру',
+    mob_profile: '👤 Менің профилім',
+    toggle_seeker: 'Жұмыс іздеймін',
+    toggle_employer: 'Жұмыс беруші',
+    hero_title: '<span class="accent">Маңғыстауда</span> жұмыс',
+    hero_sub_tpl: 'Қазір {n} вакансия · AI үздіктерін іріктейді',
+    hero_sub_default: 'Өзекті вакансиялар · AI сізге үздіктерін таңдайды',
+    search_placeholder: 'Лауазым, компания немесе дағды...',
+    stat_residents: 'Облыс тұрғыны',
+    stat_jobs: 'Белсенді вакансия',
+    stat_ai: 'Дағдыларды сәйкестендіру',
+    stat_tg: 'Хабарландырулар',
+    filter_type: 'Жұмыс түрі',
+    filter_sort: 'Сұрыптау',
+    type_all: 'Барлығы',
+    type_full: 'Толық',
+    type_part: 'Жартылай',
+    type_side: 'Қосымша жұмыс',
+    sort_date: 'Күні бойынша',
+    sort_ai: '✨ AI сүзгі',
+    list_loading: 'Жүктелуде...',
+    jobs_loading: '<div class="loading-bar"><div class="spinner"></div> Вакансиялар жүктелуде...</div>',
+    apply_title: 'Вакансияға өтініш',
+    apply_resume_label: 'Өзіңіз туралы / Түйіндеме *',
+    apply_resume_ph: 'Тәжірибеңіз, дағдыларыңыз, неліктен осы лауазымға сәйкессіз...',
+    apply_phone_label: 'Байланыс телефоны',
+    apply_salary_label: 'Күтілетін жалақы',
+    apply_salary_ph: '350 000 ₸ немесе келісім бойынша',
+    apply_send: '📩 Өтінішті жіберу',
+    auth_welcome: 'Қош келдіңіз',
+    auth_sub: 'МаңғыстауЖұмыс — Маңғыстаудағы жұмыс',
+    auth_login_tab: 'Кіру',
+    auth_reg_tab: 'Тіркелу',
+    auth_password: 'Құпия сөз',
+    auth_login_btn: 'Кіру',
+    auth_register_btn: 'Тіркелу',
+    emp_title: 'Вакансия орналастыру',
+    emp_sub: 'Тегін · Жарияланым лезде · AI сипаттамасын жазуға көмектеседі',
+    emp_position: 'Лауазым *',
+    emp_company: 'Компания / ЖК *',
+    emp_salary: 'Жалақы',
+    emp_location: 'Аудан',
+    emp_type: 'Жұмыс түрі',
+    emp_exp: 'Тәжірибе',
+    emp_skills: 'Дағдылар (үтірмен)',
+    emp_desc: 'Вакансия сипаттамасы',
+    emp_ai_write: '✨ AI-мен жазу',
+    emp_contact: 'Байланыс (Telegram / телефон) *',
+    emp_publish: 'Вакансияны жариялау →',
+    emp_success_title: 'Вакансия жарияланды!',
+    emp_success_sub: 'Іздеушілер сіздің вакансияңызды көруде. AI-матчинг үздік үміткерлерді іріктейді.',
+    emp_success_more: 'Тағы орналастыру',
+    prof_title: 'Менің профилім',
+    prof_guest_sub: 'Өтініштеріңізді көру және Telegram хабарландыруларын орнату үшін кіріңіз',
+    prof_guest_btn: 'Аккаунтқа кіру',
+    prof_tg_title: '📱 Telegram хабарландырулары',
+    prof_tg_status: 'Күй:',
+    prof_tg_unlinked: 'Байланыстырылмаған',
+    prof_tg_get_code: 'Код алу',
+    prof_tg_unlink: 'Байланысты үзу',
+    prof_apps_title: '📋 Менің өтініштерім',
+    prof_jobs_title: '📌 Менің хабарландыруларым',
+    prof_seeker_title: '✨ Жұмыс іздеуші профилі',
+    prof_seeker_sub: 'Профильді толтырыңыз — AI сүзгі сізге лайықты вакансияларды іріктейді',
+    prof_ai_btn: '✨ AI профиль талдауы',
+    prof_ai_filter_btn: '🔍 Вакансияларды AI сүзгісі',
+    prof_ai_hint: '«AI профиль талдауы» батырмасын басыңыз — кеңестер мен лайықты вакансиялар аласыз',
+    prof_logout: 'Шығу',
+    prof_delete: 'Аккаунтты жою',
+    prof_new_job: '+ Жаңасын орналастыру',
+    prof_no_apps: 'Сіз әлі вакансияларға өтініш берген жоқсыз',
+    p_desired: 'Қалаған мамандық',
+    p_salary_min: 'Қалаған жалақы (₸)',
+    p_schedule: 'Қалаған кесте',
+    p_type: 'Жұмыс түрі',
+    p_skills: 'Дағдылар',
+    p_exp_level: 'Жұмыс тәжірибесі',
+    p_education: 'Білімі',
+    p_about: 'Өзіңіз туралы / қосымша',
+    server_wake: '⏳ Сервер оянып жатыр, 60 секунд күтіңіз...',
+    jobs_error: '⚠️ Вакансияларды жүктеу мүмкін болмады. Бір минуттан кейін жаңартыңыз.',
+    ai_no_profile: '⚠️ <b>Менің профилім</b> бөлімінде профильді толтырыңыз — AI сізге лайықты вакансияларды іріктейді.',
+    ai_loading: '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI профиліңізге сай вакансияларды іріктеуде...</p></div>',
+    ai_no_match: '🤖 AI профиліңізге сай вакансия таппады.<br><span style="font-size:12px">Профильді толығырақ толтырып немесе барлық вакансияларды қараңыз.</span>',
+    ai_found: '🤖 AI {n} лайықты вакансия тапты',
+    ai_error: '⚠️ AI сүзгі қатесі: {msg}.',
+    no_jobs_filter: 'Сүзгілеу үшін вакансиялар жоқ.',
+    expand_hint: '▾ Толығырақ',
+    collapse_hint: '▴ Жию',
+    apply_btn: 'Өтініш беру',
+    applied_btn: '✓ Өтініш жіберілді',
+    tg_notify: '📬 TG-да хабарлау',
+    posted_at: 'Жарияланды',
+    days_ago: 'күн бұрын',
+    today: 'бүгін',
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'ru';
+
+function t(key, vars) {
+  const str = TRANSLATIONS[currentLang][key] || TRANSLATIONS['ru'][key] || key;
+  if (!vars) return str;
+  return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : '');
+}
+
+function applyTranslations() {
+  // data-i18n elements (innerHTML)
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val) el.innerHTML = val;
+  });
+  // data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const val = t(key);
+    if (val) el.placeholder = val;
+  });
+  // Lang button label
+  const lb = document.getElementById('langLabel');
+  if (lb) lb.textContent = currentLang === 'ru' ? 'ҚАЗ' : 'РУС';
+  // html lang attr
+  document.documentElement.lang = currentLang === 'kz' ? 'kk' : 'ru';
+  // Document title
+  document.title = currentLang === 'kz' ? 'МаңғыстауЖұмыс — Актаудағы жұмыс' : 'МангыстауРаботает — Работа в Актау';
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'ru' ? 'kz' : 'ru';
+  localStorage.setItem('lang', currentLang);
+  applyTranslations();
+}
+
+// ════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════
+let currentTheme = localStorage.getItem('theme') || 'dark';
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', currentTheme);
+  applyTheme();
+}
+
 // ════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════
@@ -645,11 +937,28 @@ let searchTimer = null;
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
   if (token && user) {
-    currentUser = JSON.parse(user);
+    try {
+      const parsed = JSON.parse(user);
+      // Проверяем что объект валидный и содержит нужные поля
+      if (parsed && parsed.role && parsed.email) {
+        currentUser = parsed;
+      } else {
+        // Невалидные данные — чистим localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        currentUser = null;
+      }
+    } catch(e) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      currentUser = null;
+    }
     updateNavAuth();
   } else {
     updateNavAuth();
   }
+  applyTheme();
+  applyTranslations();
   loadJobs();
 })();
 
@@ -814,7 +1123,7 @@ function showAuthError(msg) {
 async function loadJobs() {
   const q = document.getElementById('searchInput').value;
   const params = new URLSearchParams({ q, type: filters.type, sort: 'date' });
-  document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Сервер просыпается, подождите до 60 сек...</div>`;
+  document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('server_wake')}</div>`;
   try {
     const data = await api('GET', `/api/jobs?${params}`);
 
@@ -823,7 +1132,7 @@ async function loadJobs() {
       const sp = getSeekerProfile();
       const desired = sp.desired || localStorage.getItem('desiredJob') || '';
       if (!desired && !sp.skills && !sp.expLevel) {
-        document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Заполни профиль в разделе <b>Мой профиль</b> — тогда AI подберёт подходящие вакансии.</div>`;
+        document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('ai_no_profile')}</div>`;
         return;
       }
       await filterJobsWithAI(data.jobs, desired);
@@ -833,18 +1142,18 @@ async function loadJobs() {
 
     renderJobs(data.jobs, data.total);
     document.getElementById('statJobs').textContent = data.total;
-    document.getElementById('heroSub').textContent = `${data.total} вакансий прямо сейчас · AI подберёт лучшие`;
+    document.getElementById('heroSub').textContent = t('hero_sub_tpl',{n:data.total});
   } catch {
-    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Не удалось загрузить вакансии. Обнови страницу через минуту.</div>`;
+    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('jobs_error')}</div>`;
   }
 }
 
 async function filterJobsWithAI(jobs, desired) {
   if (!jobs.length) {
-    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">Нет вакансий для фильтрации.</div>`;
+    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('no_jobs_filter')}</div>`;
     return;
   }
-  document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI подбирает вакансии под ваш профиль...</p></div>`;
+  document.getElementById('jobsList').innerHTML = t('ai_loading');
 
   const sp = getSeekerProfile();
   const profileDesc = [
@@ -891,14 +1200,14 @@ async function filterJobsWithAI(jobs, desired) {
     const filtered = indices.map(i => jobs[i]).filter(Boolean);
 
     if (!filtered.length) {
-      document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">🤖 AI не нашёл подходящих вакансий по вашему профилю.<br><span style="font-size:12px">Попробуйте заполнить профиль подробнее или посмотрите все вакансии.</span></div>`;
+      document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('ai_no_match')}</div>`;
     } else {
-      document.getElementById('jobsList').innerHTML = `<div style="padding:10px 0 14px"><div style="color:var(--accent);font-size:13px;font-weight:500">🤖 AI нашёл ${filtered.length} подходящих вакансий</div>${reason ? `<div style="color:var(--muted);font-size:12px;margin-top:4px">${reason}</div>` : ''}</div>`;
+      document.getElementById('jobsList').innerHTML = `<div style="padding:10px 0 14px"><div style="color:var(--accent);font-size:13px;font-weight:500">${t('ai_found',{n:filtered.length})}</div>${reason ? `<div style="color:var(--muted);font-size:12px;margin-top:4px">${reason}</div>` : ''}</div>`;
       renderJobs(filtered, filtered.length, true);
     }
   } catch(e) {
     console.error('AI filter error:', e);
-    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Ошибка AI фильтра: ${e.message || 'попробуй ещё раз'}.</div>`;
+    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${t('ai_error',{msg:e.message||'...'})}</div>`;
   }
 }
 
@@ -965,7 +1274,7 @@ function jobHTML(j) {
         <div class="detail"><span class="detail-l">Откликов</span><span class="detail-v">${j.applicants_count || 0}</span></div>
       </div>
       <div class="job-actions">
-        <button class="btn-apply${applied ? ' applied' : ''}" onclick="applyJob(event,${j.id},\`${j.title} — ${j.company}\`)" ${applied ? 'disabled' : ''}>${applied ? '✓ Отклик отправлен' : 'Откликнуться'}</button>
+        <button class="btn-apply${applied ? ' applied' : ''}" onclick="applyJob(event,${j.id},\`${j.title} — ${j.company}\`)" ${applied ? 'disabled' : ''}>${applied ? t('applied_btn') : t('apply_btn')}</button>
         ${j.contact ? `<button class="btn-tg" onclick="event.stopPropagation();window.open('https://t.me/${j.contact.replace('@','')}','_blank')">Написать в Telegram</button>` : ''}
       </div>
     </div>
@@ -1151,7 +1460,7 @@ async function loadProfile() {
 
   // Показываем AI анализ только соискателям
   const aiCard = document.getElementById('aiAnalysisCard');
-  if (currentUser.role === 'employer') {
+  if (currentUser && currentUser.role === 'employer') {
     aiCard.style.display = 'none';
   } else {
     aiCard.style.display = '';
@@ -1178,12 +1487,12 @@ async function loadProfile() {
   } catch {}
 
   // Мои отклики (соискатель)
-  if (currentUser.role === 'seeker') {
+  if (currentUser && currentUser.role === 'seeker') {
     try {
       const apps = await api('GET', '/api/jobs/my/applications');
       const list = document.getElementById('myApplicationsList');
       if (!apps.length) {
-        list.innerHTML = '<div style="color:var(--muted);font-size:13px">Вы ещё не откликались на вакансии</div>';
+        list.innerHTML = `<div style="color:var(--muted);font-size:13px">${t('prof_no_apps')}</div>`;
       } else {
         list.innerHTML = '<div class="apps-list">' + apps.map(a => `
           <div class="app-item">
@@ -1198,7 +1507,7 @@ async function loadProfile() {
   }
 
   // Мои объявления (работодатель)
-  if (currentUser.role === 'employer') {
+  if (currentUser && currentUser.role === 'employer') {
     document.getElementById('myJobsCard').style.display = 'block';
     try {
       const jobs = await api('GET', '/api/jobs/my/list');
