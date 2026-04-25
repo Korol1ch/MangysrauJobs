@@ -780,31 +780,6 @@ function selectRegRole(r) {
       <button class="btn-submit" onclick="resetEmployer()" data-i18n="emp_success_more">Разместить ещё</button>
     </div>
   </div>
-
-  <!-- AI Trust Check Modal -->
-  <div id="trustCheckOverlay" class="modal-overlay hidden" style="z-index:500">
-    <div class="modal" style="max-width:460px">
-      <div id="trustCheckLoading" style="text-align:center;padding:20px 0">
-        <div class="spinner" style="margin:0 auto 12px"></div>
-        <div style="color:var(--muted);font-size:14px">🔍 AI проверяет вакансию на достоверность...</div>
-      </div>
-      <div id="trustCheckResult" class="hidden">
-        <div id="trustBadge" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;margin-bottom:16px">
-          <div id="trustIcon" style="font-size:32px"></div>
-          <div>
-            <div id="trustVerdict" style="font-size:15px;font-weight:700"></div>
-            <div id="trustScore" style="font-size:12px;opacity:.8;margin-top:2px"></div>
-          </div>
-        </div>
-        <div id="trustSummary" style="font-size:14px;color:var(--text);margin-bottom:12px;line-height:1.5"></div>
-        <div id="trustFlags" style="margin-bottom:18px"></div>
-        <div style="display:flex;gap:10px">
-          <button id="trustPublishBtn" onclick="confirmPublish()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Golos Text',sans-serif">Опубликовать всё равно</button>
-          <button onclick="closeTrustCheck()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:14px;cursor:pointer;font-family:'Golos Text',sans-serif">Редактировать</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ════ PROFILE PAGE ════ -->
@@ -822,7 +797,26 @@ function selectRegRole(r) {
       <p class="page-sub" id="profileEmail"></p>
       <div class="profile-grid">
         <div style="display:flex;flex-direction:column;gap:16px">
-          <!-- AI работает через сервер -->
+          <!-- AI API ключ -->
+          <div class="card" id="apiKeyCard">
+            <div class="card-title">🤖 AI настройки</div>
+            <div class="tg-box">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
+                Для работы AI фильтра и анализа профиля нужен ключ Anthropic API.
+                Получите бесплатно на <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input class="form-input" id="apiKeyInput" type="password"
+                  placeholder="sk-ant-..."
+                  style="flex:1;font-family:monospace;font-size:13px"
+                  value=""
+                  oninput="previewApiKey()"
+                />
+                <button class="btn-sm" onclick="saveApiKey()" style="white-space:nowrap;background:var(--accent);color:#fff;border-color:var(--accent)">Сохранить</button>
+              </div>
+              <div id="apiKeyStatus" style="font-size:12px;margin-top:4px;display:none"></div>
+            </div>
+          </div>
           <!-- Telegram привязка -->
           <div class="card">
             <div class="card-title" data-i18n="prof_tg_title">📱 Telegram уведомления</div>
@@ -961,22 +955,7 @@ const API = "https://mangysraujobs.onrender.com"
 
 // Anthropic API key для AI-функций (AI фильтр, генерация описания, анализ профиля)
 // Замените на свой ключ с https://console.anthropic.com
-// AI запросы проксируются через backend /api/ai
-
-// Безопасно парсит JSON-ответ от API; если пришёл HTML — кидает понятную ошибку
-async function safeJson(res) {
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    // Сервер вернул HTML (ошибка 404/500/CORS)
-    const status = res.status;
-    if (status === 404) throw new Error('Маршрут /api/ai не найден — обнови сервер');
-    if (status === 500) throw new Error('Ошибка сервера — проверь ANTHROPIC_API_KEY в Render');
-    throw new Error(`Сервер вернул не JSON (${status}) — проверь деплой`);
-  }
-}
-
+window.ANTHROPIC_API_KEY = localStorage.getItem('anthropic_api_key') || '';
 
 // ════════════════════════════════════════
 //  STATE
@@ -1042,13 +1021,9 @@ async function api(method, path, body) {
     const data = await res.json();
     if (!res.ok) {
       if (res.status === 401) {
-        // Не разлогиниваем на вспомогательных запросах (telegram, applications и т.д.)
-        const criticalPaths = ['/api/auth/me', '/api/auth/login'];
-        const isCritical = criticalPaths.some(p => path.startsWith(p));
-        if (isCritical) {
-          doLogout(true);
-        }
-        throw new Error(data.error || 'Сессия устарела — войдите снова');
+        // Любой 401 — сессия недействительна (сервер мог сбросить БД)
+        doLogout(true);
+        throw new Error('Сессия устарела — войдите снова');
       }
       throw new Error(data.error || 'Ошибка сервера');
     }
@@ -1219,15 +1194,45 @@ async function filterJobsWithAI(jobs, desired) {
   document.getElementById('jobsList').innerHTML = t('ai_loading');
 
   const sp = getSeekerProfile();
+  const profileDesc = [
+    sp.desired   ? `Желаемая профессия: ${sp.desired}` : '',
+    sp.salaryMin ? `Желаемая зарплата: от ${sp.salaryMin}` : '',
+    sp.schedule  ? `График: ${sp.schedule}` : '',
+    sp.type      ? `Занятость: ${sp.type}` : '',
+    sp.skills    ? `Навыки: ${sp.skills}` : '',
+    sp.expLevel  ? `Опыт: ${sp.expLevel}` : '',
+    sp.education ? `Образование: ${sp.education}` : '',
+    sp.about     ? `Дополнительно: ${sp.about}` : '',
+  ].filter(Boolean).join('\n');
 
   try {
-    const aiRes = await fetch(API + '/api/ai/filter', {
+    const jobList = jobs.map((j, i) =>
+      `${i}: ${j.title} — ${j.company}. Зарплата: ${j.salary || 'не указана'}. Тип: ${j.type || ''}. График: ${j.schedule || ''}. Опыт: ${j.experience || ''}. ${j.description || ''}`
+    ).join('\n');
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile: sp, jobs })
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': window.ANTHROPIC_API_KEY || '',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: 'Ты помогаешь искать работу в Мангистау, Казахстан. Анализируй профиль соискателя и список вакансий. Отвечай ТОЛЬКО в формате JSON объекта: {"indices": [0,2,5], "reason": "краткое объяснение на русском до 60 слов"}. Без markdown, только JSON.',
+        messages: [{
+          role: 'user',
+          content: `Профиль соискателя:\n${profileDesc || 'Не заполнен'}\n\nВакансии:\n${jobList}\n\nВерни JSON с индексами подходящих вакансий и кратким объяснением.`
+        }]
+      })
     });
-    const result = await safeJson(aiRes);
-    if (!aiRes.ok) throw new Error(result.error || 'Ошибка AI фильтра');
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+
+    const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
     const indices = result.indices || [];
     const reason = result.reason || '';
     const filtered = indices.map(i => jobs[i]).filter(Boolean);
@@ -1398,39 +1403,20 @@ async function aiGenerateDesc() {
   const btn = document.getElementById('aiDescBtn');
   btn.disabled = true; btn.textContent = '⏳ Генерирую...';
   try {
-    const genRes = await fetch(API + '/api/ai/generate-desc', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, company: document.getElementById('f-company').value, salary: document.getElementById('f-salary').value })
+      headers: { 'Content-Type': 'application/json', 'x-api-key': window.ANTHROPIC_API_KEY || '', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        system: 'Ты помогаешь работодателям в Мангистау (Казахстан) составлять описания вакансий. Отвечай только на русском. Пиши кратко — 2-3 предложения.',
+        messages: [{ role: 'user', content: `Напиши описание вакансии: "${title}" в "${document.getElementById('f-company').value || 'компании'}", зарплата: ${document.getElementById('f-salary').value || 'обсуждается'}.` }]
+      })
     });
-    const genData = await safeJson(genRes);
-    if (!genRes.ok) throw new Error(genData.error || 'Ошибка AI');
-    document.getElementById('f-desc').value = genData.text || '';
+    const data = await res.json();
+    document.getElementById('f-desc').value = data.content?.[0]?.text || '';
     document.getElementById('aiDescHint').style.display = 'block';
   } catch { alert('Ошибка AI'); }
   btn.disabled = false; btn.textContent = '✨ Написать с AI';
-}
-
-let _pendingJobData = null;
-
-function closeTrustCheck() {
-  document.getElementById('trustCheckOverlay').classList.add('hidden');
-}
-
-async function confirmPublish() {
-  if (!_pendingJobData) return;
-  closeTrustCheck();
-  const btn = document.getElementById('submitJobBtn');
-  btn.disabled = true; btn.textContent = 'Публикуем...';
-  try {
-    await api('POST', '/api/jobs', _pendingJobData);
-    document.getElementById('employerForm').classList.add('hidden');
-    document.getElementById('employerSuccess').classList.remove('hidden');
-    document.getElementById('successInfo').innerHTML = `<strong>${_pendingJobData.title}</strong> · ${_pendingJobData.company}`;
-    loadJobs();
-  } catch (e) { alert(e.message); }
-  btn.disabled = false; btn.textContent = 'Опубликовать вакансию →';
-  _pendingJobData = null;
 }
 
 async function submitJob() {
@@ -1439,97 +1425,24 @@ async function submitJob() {
   const company = document.getElementById('f-company').value;
   const contact = document.getElementById('f-contact').value;
   if (!title || !company || !contact) { alert('Заполните обязательные поля (*)'); return; }
-
-  const jobData = {
-    title, company, contact,
-    location: document.getElementById('f-location').value,
-    salary: document.getElementById('f-salary').value,
-    type: document.getElementById('f-type').value,
-    experience: document.getElementById('f-exp').value,
-    skills: document.getElementById('f-skills').value,
-    description: document.getElementById('f-desc').value,
-  };
-
-  // Запускаем AI проверку
-  _pendingJobData = jobData;
-  const overlay = document.getElementById('trustCheckOverlay');
-  overlay.classList.remove('hidden');
-  document.getElementById('trustCheckLoading').classList.remove('hidden');
-  document.getElementById('trustCheckResult').classList.add('hidden');
-
+  const btn = document.getElementById('submitJobBtn');
+  btn.disabled = true; btn.textContent = 'Публикуем...';
   try {
-    const check = await fetch(API + '/api/ai/check-job', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {}) },
-      body: JSON.stringify(jobData)
-    }).then(r => r.json());
-
-    document.getElementById('trustCheckLoading').classList.add('hidden');
-    document.getElementById('trustCheckResult').classList.remove('hidden');
-
-    const badge = document.getElementById('trustBadge');
-    const icon = document.getElementById('trustIcon');
-    const verdict = document.getElementById('trustVerdict');
-    const score = document.getElementById('trustScore');
-    const summary = document.getElementById('trustSummary');
-    const flags = document.getElementById('trustFlags');
-    const publishBtn = document.getElementById('trustPublishBtn');
-
-    if (check.verdict === 'ok') {
-      badge.style.background = 'rgba(16,185,129,.15)';
-      badge.style.border = '1px solid rgba(16,185,129,.4)';
-      icon.textContent = '✅';
-      verdict.textContent = 'Вакансия выглядит достоверно';
-      verdict.style.color = '#10b981';
-      publishBtn.textContent = '✅ Опубликовать';
-    } else if (check.verdict === 'warning') {
-      badge.style.background = 'rgba(245,158,11,.15)';
-      badge.style.border = '1px solid rgba(245,158,11,.4)';
-      icon.textContent = '⚠️';
-      verdict.textContent = 'Есть поводы для внимания';
-      verdict.style.color = '#f59e0b';
-      publishBtn.textContent = 'Опубликовать всё равно';
-    } else {
-      badge.style.background = 'rgba(239,68,68,.15)';
-      badge.style.border = '1px solid rgba(239,68,68,.4)';
-      icon.textContent = '🚨';
-      verdict.textContent = 'Вакансия похожа на мошенничество';
-      verdict.style.color = '#ef4444';
-      publishBtn.textContent = 'Опубликовать на свой риск';
-    }
-
-    score.textContent = `Оценка доверия: ${check.score}/100`;
-    summary.textContent = check.summary || '';
-
-    if (check.flags && check.flags.length) {
-      flags.innerHTML = check.flags.map(f =>
-        `<div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);margin-bottom:6px">
-          <span style="margin-top:1px">⚠</span><span>${f}</span>
-        </div>`
-      ).join('');
-    } else {
-      flags.innerHTML = '';
-    }
-
-    // Если ok — сразу публикуем без клика
-    if (check.verdict === 'ok') {
-      setTimeout(() => confirmPublish(), 1500);
-    }
-  } catch(e) {
-    // Если AI недоступен — публикуем без проверки
-    closeTrustCheck();
-    const btn = document.getElementById('submitJobBtn');
-    btn.disabled = true; btn.textContent = 'Публикуем...';
-    try {
-      await api('POST', '/api/jobs', _pendingJobData);
-      document.getElementById('employerForm').classList.add('hidden');
-      document.getElementById('employerSuccess').classList.remove('hidden');
-      document.getElementById('successInfo').innerHTML = `<strong>${_pendingJobData.title}</strong> · ${_pendingJobData.company}`;
-      loadJobs();
-    } catch (e) { alert(e.message); }
-    btn.disabled = false; btn.textContent = 'Опубликовать вакансию →';
-    _pendingJobData = null;
-  }
+    await api('POST', '/api/jobs', {
+      title, company, contact,
+      location: document.getElementById('f-location').value,
+      salary: document.getElementById('f-salary').value,
+      type: document.getElementById('f-type').value,
+      experience: document.getElementById('f-exp').value,
+      skills: document.getElementById('f-skills').value,
+      description: document.getElementById('f-desc').value,
+    });
+    document.getElementById('employerForm').classList.add('hidden');
+    document.getElementById('employerSuccess').classList.remove('hidden');
+    document.getElementById('successInfo').innerHTML = `<strong>${title}</strong> · ${company}`;
+    loadJobs();
+  } catch (e) { alert(e.message); }
+  btn.disabled = false; btn.textContent = 'Опубликовать вакансию →';
 }
 
 function resetEmployer() {
@@ -1573,6 +1486,7 @@ function goToAIFilter() {
 function saveDesiredJob() { saveSeekerProfile(); }
 
 async function loadProfile() {
+  loadApiKeyInput();
   if (!currentUser) {
     document.getElementById('profileGuest').classList.remove('hidden');
     document.getElementById('profileAuth').classList.add('hidden');
@@ -1743,13 +1657,18 @@ async function analyzeProfile() {
   document.getElementById('aiResults').classList.add('hidden');
   document.getElementById('analyzeBtn').disabled = true;
   try {
-    const analyzeRes = await fetch(API + '/api/ai/analyze-profile', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skills, expLevel: exp, desired })
+      headers: { 'Content-Type': 'application/json', 'x-api-key': window.ANTHROPIC_API_KEY || '', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 800,
+        system: 'Ты карьерный консультант для рынка труда Мангистау (Казахстан). Отвечай ТОЛЬКО в формате JSON без markdown и без пояснений. Поля: tips (массив 3 строки), topJobs (массив 3 строки), salaryRange (строка в тенге).',
+        messages: [{ role: 'user', content: `Профиль: навыки: ${skills}, опыт: ${exp}, желаемая работа: ${desired}. Верни JSON.` }]
+      })
     });
-    const r = await safeJson(analyzeRes);
-    if (!analyzeRes.ok) throw new Error(r.error || 'Ошибка AI');
+    const data = await res.json();
+    const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
+    const r = JSON.parse(raw);
     document.getElementById('aiResults').innerHTML = `
       <div class="card-title">AI-анализ профиля</div>
       <div><div class="ai-section-label">💼 Подходящие вакансии</div>${(r.topJobs || []).map((j, i) => `<div class="ai-job-item"><span class="ai-rank">${i + 1}</span>${j}</div>`).join('')}</div>
@@ -1804,11 +1723,53 @@ function timeAgo(dateStr) {
   if (h < 24) return `${h} ч назад`;
   return `${Math.floor(h / 24)} д назад`;
 }
-// AI работает через backend — ключ хранится в .env на сервере
-// Функции saveApiKey/loadApiKeyInput оставлены пустыми для обратной совместимости
-function saveApiKey() {}
-function previewApiKey() {}
-function loadApiKeyInput() {}
+// ════════════════════════════════════════
+//  API KEY MANAGEMENT
+// ════════════════════════════════════════
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput')?.value?.trim();
+  if (!key) return;
+  localStorage.setItem('anthropic_api_key', key);
+  window.ANTHROPIC_API_KEY = key;
+  const status = document.getElementById('apiKeyStatus');
+  if (status) {
+    status.style.display = 'block';
+    status.style.color = 'var(--green)';
+    status.textContent = '✓ Ключ сохранён. AI функции активны.';
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+  }
+}
+
+function previewApiKey() {
+  const key = document.getElementById('apiKeyInput')?.value?.trim();
+  const status = document.getElementById('apiKeyStatus');
+  if (!status) return;
+  if (key && key.startsWith('sk-ant-') && key.length > 20) {
+    status.style.display = 'block';
+    status.style.color = 'var(--muted)';
+    status.textContent = '👍 Ключ выглядит правильно — нажмите «Сохранить»';
+  } else if (key && key.length > 3) {
+    status.style.display = 'block';
+    status.style.color = 'var(--red)';
+    status.textContent = '⚠️ Ключ должен начинаться с sk-ant-...';
+  } else {
+    status.style.display = 'none';
+  }
+}
+
+function loadApiKeyInput() {
+  const saved = localStorage.getItem('anthropic_api_key') || '';
+  const input = document.getElementById('apiKeyInput');
+  if (input && saved) {
+    input.value = saved;
+    const status = document.getElementById('apiKeyStatus');
+    if (status) {
+      status.style.display = 'block';
+      status.style.color = 'var(--green)';
+      status.textContent = '✓ Ключ загружен. AI функции активны.';
+    }
+  }
+}
 
 </script>
 </body>
