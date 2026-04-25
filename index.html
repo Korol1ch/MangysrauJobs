@@ -938,6 +938,21 @@ const API = "https://mangysraujobs.onrender.com"
 // Замените на свой ключ с https://console.anthropic.com
 // AI запросы проксируются через backend /api/ai
 
+// Безопасно парсит JSON-ответ от API; если пришёл HTML — кидает понятную ошибку
+async function safeJson(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Сервер вернул HTML (ошибка 404/500/CORS)
+    const status = res.status;
+    if (status === 404) throw new Error('Маршрут /api/ai не найден — обнови сервер');
+    if (status === 500) throw new Error('Ошибка сервера — проверь ANTHROPIC_API_KEY в Render');
+    throw new Error(`Сервер вернул не JSON (${status}) — проверь деплой`);
+  }
+}
+
+
 // ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
@@ -1182,7 +1197,7 @@ async function filterJobsWithAI(jobs, desired) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profile: sp, jobs })
     });
-    const result = await aiRes.json();
+    const result = await safeJson(aiRes);
     if (!aiRes.ok) throw new Error(result.error || 'Ошибка AI фильтра');
     const indices = result.indices || [];
     const reason = result.reason || '';
@@ -1359,7 +1374,7 @@ async function aiGenerateDesc() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, company: document.getElementById('f-company').value, salary: document.getElementById('f-salary').value })
     });
-    const genData = await genRes.json();
+    const genData = await safeJson(genRes);
     if (!genRes.ok) throw new Error(genData.error || 'Ошибка AI');
     document.getElementById('f-desc').value = genData.text || '';
     document.getElementById('aiDescHint').style.display = 'block';
@@ -1609,7 +1624,7 @@ async function analyzeProfile() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ skills, expLevel: exp, desired })
     });
-    const r = await analyzeRes.json();
+    const r = await safeJson(analyzeRes);
     if (!analyzeRes.ok) throw new Error(r.error || 'Ошибка AI');
     document.getElementById('aiResults').innerHTML = `
       <div class="card-title">AI-анализ профиля</div>

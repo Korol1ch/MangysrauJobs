@@ -1,14 +1,13 @@
 const router = require('express').Router();
 const { authOptional } = require('../middleware/auth');
 
-// Проверяем наличие API ключа
 function getApiKey() {
   return process.env.ANTHROPIC_API_KEY || '';
 }
 
 async function callClaude(body) {
   const key = getApiKey();
-  if (!key) throw new Error('ANTHROPIC_API_KEY не настроен на сервере');
+  if (!key) throw new Error('ANTHROPIC_API_KEY не настроен на сервере — добавьте в Render → Environment');
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -22,22 +21,28 @@ async function callClaude(body) {
 
   const data = await res.json();
   if (!res.ok || data.error) {
-    throw new Error(data.error?.message || 'Ошибка Anthropic API');
+    throw new Error(data.error?.message || `Anthropic API error ${res.status}`);
   }
   return data;
 }
 
-// ── POST /api/ai/filter ── Фильтрация вакансий под профиль соискателя
+// ── Health check чтобы убедиться что роут работает ──
+router.get('/health', (req, res) => {
+  res.json({
+    ok: true,
+    hasApiKey: !!getApiKey(),
+    message: getApiKey() ? 'ANTHROPIC_API_KEY задан ✅' : 'ANTHROPIC_API_KEY не задан ❌ — добавьте в Render → Environment'
+  });
+});
+
+// ── POST /api/ai/filter ──
 router.post('/filter', authOptional, async (req, res) => {
   const { profile, jobs } = req.body;
 
-  if (!jobs || !jobs.length) {
+  if (!jobs || !jobs.length)
     return res.status(400).json({ error: 'Список вакансий пуст' });
-  }
-
-  if (!profile || (!profile.desired && !profile.skills && !profile.expLevel)) {
-    return res.status(400).json({ error: 'Профиль соискателя не заполнен' });
-  }
+  if (!profile || (!profile.desired && !profile.skills && !profile.expLevel))
+    return res.status(400).json({ error: 'Заполните профиль соискателя (желаемая должность, навыки или опыт)' });
 
   const profileDesc = [
     profile.desired   ? `Желаемая профессия: ${profile.desired}` : '',
@@ -59,65 +64,49 @@ router.post('/filter', authOptional, async (req, res) => {
       model: 'claude-sonnet-4-20250514',
       max_tokens: 500,
       system: 'Ты помогаешь искать работу в Мангистау, Казахстан. Анализируй профиль соискателя и список вакансий. Отвечай ТОЛЬКО в формате JSON объекта: {"indices": [0,2,5], "reason": "краткое объяснение на русском до 60 слов"}. Без markdown, только JSON.',
-      messages: [{
-        role: 'user',
-        content: `Профиль соискателя:\n${profileDesc}\n\nВакансии:\n${jobList}\n\nВерни JSON с индексами подходящих вакансий и кратким объяснением.`
-      }]
+      messages: [{ role: 'user', content: `Профиль соискателя:\n${profileDesc}\n\nВакансии:\n${jobList}\n\nВерни JSON с индексами подходящих вакансий и кратким объяснением.` }]
     });
-
     const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
     const result = JSON.parse(raw);
     res.json({ indices: result.indices || [], reason: result.reason || '' });
   } catch (e) {
-    console.error('AI filter error:', e.message);
+    console.error('AI /filter error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── POST /api/ai/generate-desc ── Генерация описания вакансии
+// ── POST /api/ai/generate-desc ──
 router.post('/generate-desc', authOptional, async (req, res) => {
   const { title, company, salary } = req.body;
   if (!title) return res.status(400).json({ error: 'Название должности обязательно' });
-
   try {
     const data = await callClaude({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 500,
       system: 'Ты помогаешь работодателям в Мангистау (Казахстан) составлять описания вакансий. Отвечай только на русском. Пиши кратко — 2-3 предложения.',
-      messages: [{
-        role: 'user',
-        content: `Напиши описание вакансии: "${title}" в "${company || 'компании'}", зарплата: ${salary || 'обсуждается'}.`
-      }]
+      messages: [{ role: 'user', content: `Напиши описание вакансии: "${title}" в "${company || 'компании'}", зарплата: ${salary || 'обсуждается'}.` }]
     });
-
-    const text = data.content?.[0]?.text || '';
-    res.json({ text });
+    res.json({ text: data.content?.[0]?.text || '' });
   } catch (e) {
-    console.error('AI generate-desc error:', e.message);
+    console.error('AI /generate-desc error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── POST /api/ai/analyze-profile ── Анализ профиля соискателя
+// ── POST /api/ai/analyze-profile ──
 router.post('/analyze-profile', authOptional, async (req, res) => {
   const { skills, expLevel, desired } = req.body;
-
   try {
     const data = await callClaude({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 800,
       system: 'Ты карьерный консультант для рынка труда Мангистау (Казахстан). Отвечай ТОЛЬКО в формате JSON без markdown и без пояснений. Поля: tips (массив 3 строки), topJobs (массив 3 строки), salaryRange (строка в тенге).',
-      messages: [{
-        role: 'user',
-        content: `Профиль: навыки: ${skills || '—'}, опыт: ${expLevel || '—'}, желаемая работа: ${desired || '—'}. Верни JSON.`
-      }]
+      messages: [{ role: 'user', content: `Профиль: навыки: ${skills || '—'}, опыт: ${expLevel || '—'}, желаемая работа: ${desired || '—'}. Верни JSON.` }]
     });
-
     const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
-    const result = JSON.parse(raw);
-    res.json(result);
+    res.json(JSON.parse(raw));
   } catch (e) {
-    console.error('AI analyze-profile error:', e.message);
+    console.error('AI /analyze-profile error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
