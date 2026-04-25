@@ -10,7 +10,7 @@ async function callGemini(systemPrompt, userPrompt, maxTokens = 500) {
   if (!key) throw new Error('GEMINI_API_KEY не настроен на сервере — добавьте в Render → Environment');
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
