@@ -290,6 +290,275 @@ textarea.form-input{resize:vertical;min-height:90px}
   .filter-chip{font-size:11px;padding:4px 8px}
 }
 </style>
+<script>
+// ════ LANG & THEME — must be declared before body renders ════
+// ════════════════════════════════════════
+//  TRANSLATIONS
+// ════════════════════════════════════════
+const TRANSLATIONS = {
+  ru: {
+    nav_jobs: 'Вакансии',
+    nav_employer: 'Разместить вакансию',
+    nav_profile: 'Мой профиль',
+    nav_login: 'Войти / Регистрация',
+    mob_jobs: '📋 Вакансии',
+    mob_employer: '➕ Разместить вакансию',
+    mob_profile: '👤 Мой профиль',
+    toggle_seeker: 'Ищу работу',
+    toggle_employer: 'Работодатель',
+    hero_title: 'Работа в <span class="accent">Мангистау</span>',
+    hero_sub_tpl: '{n} вакансий прямо сейчас · AI подберёт лучшие',
+    hero_sub_default: 'Актуальные вакансии · AI подберёт лучшие для вас',
+    search_placeholder: 'Должность, компания или навык...',
+    stat_residents: 'Жителей области',
+    stat_jobs: 'Активных вакансий',
+    stat_ai: 'Матчинг навыков',
+    stat_tg: 'Уведомления',
+    filter_type: 'Тип занятости',
+    filter_sort: 'Сортировка',
+    type_all: 'Все',
+    type_full: 'Полная',
+    type_part: 'Частичная',
+    type_side: 'Подработка',
+    sort_date: 'По дате',
+    sort_ai: '✨ AI фильтр',
+    list_loading: 'Загрузка...',
+    jobs_loading: '<div class="loading-bar"><div class="spinner"></div> <span data-i18n="jobs_loading_text">Загружаем вакансии...</span></div>',
+    apply_title: 'Отклик на вакансию',
+    apply_resume_label: 'О себе / Резюме *',
+    apply_resume_ph: 'Расскажите о своём опыте, навыках, почему подходите на эту вакансию...',
+    apply_phone_label: 'Контактный телефон',
+    apply_salary_label: 'Ожидаемая зарплата',
+    apply_salary_ph: '350 000 ₸ или договорная',
+    apply_send: '📩 Отправить отклик',
+    auth_welcome: 'Добро пожаловать',
+    auth_sub: 'МангыстауРаботает — работа в Мангистау',
+    auth_login_tab: 'Войти',
+    auth_reg_tab: 'Регистрация',
+    auth_password: 'Пароль',
+    auth_login_btn: 'Войти',
+    auth_register_btn: 'Зарегистрироваться',
+    emp_title: 'Разместить вакансию',
+    emp_sub: 'Бесплатно · Публикация мгновенная · AI поможет с описанием',
+    emp_position: 'Должность *',
+    emp_company: 'Компания / ИП *',
+    emp_salary: 'Зарплата',
+    emp_location: 'Район',
+    emp_type: 'Тип занятости',
+    emp_exp: 'Опыт',
+    emp_skills: 'Навыки (через запятую)',
+    emp_desc: 'Описание вакансии',
+    emp_ai_write: '✨ Написать с AI',
+    emp_contact: 'Контакт (Telegram / телефон) *',
+    emp_publish: 'Опубликовать вакансию →',
+    emp_success_title: 'Вакансия опубликована!',
+    emp_success_sub: 'Соискатели уже видят вашу вакансию. AI-матчинг подберёт лучших кандидатов.',
+    emp_success_more: 'Разместить ещё',
+    prof_title: 'Мой профиль',
+    prof_guest_sub: 'Войдите чтобы видеть свои отклики и настроить Telegram-уведомления',
+    prof_guest_btn: 'Войти в аккаунт',
+    prof_tg_title: '📱 Telegram уведомления',
+    prof_tg_status: 'Статус:',
+    prof_tg_unlinked: 'Не привязан',
+    prof_tg_get_code: 'Получить код',
+    prof_tg_unlink: 'Отвязать',
+    prof_apps_title: '📋 Мои отклики',
+    prof_jobs_title: '📌 Мои объявления',
+    prof_seeker_title: '✨ Мой профиль соискателя',
+    prof_seeker_sub: 'Заполните профиль — AI фильтр на главной странице будет подбирать вакансии именно под вас',
+    prof_ai_btn: '✨ AI анализ профиля',
+    prof_ai_filter_btn: '🔍 AI фильтр вакансий',
+    prof_ai_hint: 'Нажмите «AI анализ профиля» — получите советы и подходящие вакансии',
+    prof_logout: 'Выйти',
+    prof_delete: 'Удалить аккаунт',
+    prof_new_job: '+ Разместить новую',
+    prof_no_apps: 'Вы ещё не откликались на вакансии',
+    // Profile form labels
+    p_desired: 'Желаемая профессия',
+    p_salary_min: 'Желаемая зарплата (₸)',
+    p_schedule: 'Желаемый график',
+    p_type: 'Тип занятости',
+    p_skills: 'Навыки',
+    p_exp_level: 'Опыт работы',
+    p_education: 'Образование',
+    p_about: 'О себе / дополнительно',
+    // Errors/status
+    server_wake: '⏳ Сервер просыпается, подождите до 60 сек...',
+    jobs_error: '⚠️ Не удалось загрузить вакансии. Обнови страницу через минуту.',
+    ai_no_profile: '⚠️ Заполни профиль в разделе <b>Мой профиль</b> — тогда AI подберёт подходящие вакансии.',
+    ai_loading: '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI подбирает вакансии под ваш профиль...</p></div>',
+    ai_no_match: '🤖 AI не нашёл подходящих вакансий по вашему профилю.<br><span style="font-size:12px">Попробуйте заполнить профиль подробнее или посмотрите все вакансии.</span>',
+    ai_found: '🤖 AI нашёл {n} подходящих вакансий',
+    ai_error: '⚠️ Ошибка AI фильтра: {msg}.',
+    no_jobs_filter: 'Нет вакансий для фильтрации.',
+    expand_hint: t('expand_hint'),
+    collapse_hint: t('collapse_hint'),
+    apply_btn: t('apply_btn'),
+    applied_btn: t('applied_btn'),
+    tg_notify: t('tg_notify'),
+    posted_at: t('posted_at'),
+    days_ago: t('days_ago'),
+    today: t('today'),
+  },
+  kz: {
+    nav_jobs: 'Жұмыс орындары',
+    nav_employer: 'Вакансия орналастыру',
+    nav_profile: 'Менің профилім',
+    nav_login: 'Кіру / Тіркелу',
+    mob_jobs: '📋 Жұмыс орындары',
+    mob_employer: '➕ Вакансия орналастыру',
+    mob_profile: '👤 Менің профилім',
+    toggle_seeker: 'Жұмыс іздеймін',
+    toggle_employer: 'Жұмыс беруші',
+    hero_title: '<span class="accent">Маңғыстауда</span> жұмыс',
+    hero_sub_tpl: 'Қазір {n} вакансия · AI үздіктерін іріктейді',
+    hero_sub_default: 'Өзекті вакансиялар · AI сізге үздіктерін таңдайды',
+    search_placeholder: 'Лауазым, компания немесе дағды...',
+    stat_residents: 'Облыс тұрғыны',
+    stat_jobs: 'Белсенді вакансия',
+    stat_ai: 'Дағдыларды сәйкестендіру',
+    stat_tg: 'Хабарландырулар',
+    filter_type: 'Жұмыс түрі',
+    filter_sort: 'Сұрыптау',
+    type_all: 'Барлығы',
+    type_full: 'Толық',
+    type_part: 'Жартылай',
+    type_side: 'Қосымша жұмыс',
+    sort_date: 'Күні бойынша',
+    sort_ai: '✨ AI сүзгі',
+    list_loading: 'Жүктелуде...',
+    jobs_loading: '<div class="loading-bar"><div class="spinner"></div> Вакансиялар жүктелуде...</div>',
+    apply_title: 'Вакансияға өтініш',
+    apply_resume_label: 'Өзіңіз туралы / Түйіндеме *',
+    apply_resume_ph: 'Тәжірибеңіз, дағдыларыңыз, неліктен осы лауазымға сәйкессіз...',
+    apply_phone_label: 'Байланыс телефоны',
+    apply_salary_label: 'Күтілетін жалақы',
+    apply_salary_ph: '350 000 ₸ немесе келісім бойынша',
+    apply_send: '📩 Өтінішті жіберу',
+    auth_welcome: 'Қош келдіңіз',
+    auth_sub: 'МаңғыстауЖұмыс — Маңғыстаудағы жұмыс',
+    auth_login_tab: 'Кіру',
+    auth_reg_tab: 'Тіркелу',
+    auth_password: 'Құпия сөз',
+    auth_login_btn: 'Кіру',
+    auth_register_btn: 'Тіркелу',
+    emp_title: 'Вакансия орналастыру',
+    emp_sub: 'Тегін · Жарияланым лезде · AI сипаттамасын жазуға көмектеседі',
+    emp_position: 'Лауазым *',
+    emp_company: 'Компания / ЖК *',
+    emp_salary: 'Жалақы',
+    emp_location: 'Аудан',
+    emp_type: 'Жұмыс түрі',
+    emp_exp: 'Тәжірибе',
+    emp_skills: 'Дағдылар (үтірмен)',
+    emp_desc: 'Вакансия сипаттамасы',
+    emp_ai_write: '✨ AI-мен жазу',
+    emp_contact: 'Байланыс (Telegram / телефон) *',
+    emp_publish: 'Вакансияны жариялау →',
+    emp_success_title: 'Вакансия жарияланды!',
+    emp_success_sub: 'Іздеушілер сіздің вакансияңызды көруде. AI-матчинг үздік үміткерлерді іріктейді.',
+    emp_success_more: 'Тағы орналастыру',
+    prof_title: 'Менің профилім',
+    prof_guest_sub: 'Өтініштеріңізді көру және Telegram хабарландыруларын орнату үшін кіріңіз',
+    prof_guest_btn: 'Аккаунтқа кіру',
+    prof_tg_title: '📱 Telegram хабарландырулары',
+    prof_tg_status: 'Күй:',
+    prof_tg_unlinked: 'Байланыстырылмаған',
+    prof_tg_get_code: 'Код алу',
+    prof_tg_unlink: 'Байланысты үзу',
+    prof_apps_title: '📋 Менің өтініштерім',
+    prof_jobs_title: '📌 Менің хабарландыруларым',
+    prof_seeker_title: '✨ Жұмыс іздеуші профилі',
+    prof_seeker_sub: 'Профильді толтырыңыз — AI сүзгі сізге лайықты вакансияларды іріктейді',
+    prof_ai_btn: '✨ AI профиль талдауы',
+    prof_ai_filter_btn: '🔍 Вакансияларды AI сүзгісі',
+    prof_ai_hint: '«AI профиль талдауы» батырмасын басыңыз — кеңестер мен лайықты вакансиялар аласыз',
+    prof_logout: 'Шығу',
+    prof_delete: 'Аккаунтты жою',
+    prof_new_job: '+ Жаңасын орналастыру',
+    prof_no_apps: 'Сіз әлі вакансияларға өтініш берген жоқсыз',
+    p_desired: 'Қалаған мамандық',
+    p_salary_min: 'Қалаған жалақы (₸)',
+    p_schedule: 'Қалаған кесте',
+    p_type: 'Жұмыс түрі',
+    p_skills: 'Дағдылар',
+    p_exp_level: 'Жұмыс тәжірибесі',
+    p_education: 'Білімі',
+    p_about: 'Өзіңіз туралы / қосымша',
+    server_wake: '⏳ Сервер оянып жатыр, 60 секунд күтіңіз...',
+    jobs_error: '⚠️ Вакансияларды жүктеу мүмкін болмады. Бір минуттан кейін жаңартыңыз.',
+    ai_no_profile: '⚠️ <b>Менің профилім</b> бөлімінде профильді толтырыңыз — AI сізге лайықты вакансияларды іріктейді.',
+    ai_loading: '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI профиліңізге сай вакансияларды іріктеуде...</p></div>',
+    ai_no_match: '🤖 AI профиліңізге сай вакансия таппады.<br><span style="font-size:12px">Профильді толығырақ толтырып немесе барлық вакансияларды қараңыз.</span>',
+    ai_found: '🤖 AI {n} лайықты вакансия тапты',
+    ai_error: '⚠️ AI сүзгі қатесі: {msg}.',
+    no_jobs_filter: 'Сүзгілеу үшін вакансиялар жоқ.',
+    expand_hint: '▾ Толығырақ',
+    collapse_hint: '▴ Жию',
+    apply_btn: 'Өтініш беру',
+    applied_btn: '✓ Өтініш жіберілді',
+    tg_notify: '📬 TG-да хабарлау',
+    posted_at: 'Жарияланды',
+    days_ago: 'күн бұрын',
+    today: 'бүгін',
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'ru';
+
+function t(key, vars) {
+  const str = TRANSLATIONS[currentLang][key] || TRANSLATIONS['ru'][key] || key;
+  if (!vars) return str;
+  return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : '');
+}
+
+function applyTranslations() {
+  // data-i18n elements (innerHTML)
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val) el.innerHTML = val;
+  });
+  // data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const val = t(key);
+    if (val) el.placeholder = val;
+  });
+  // Lang button label
+  const lb = document.getElementById('langLabel');
+  if (lb) lb.textContent = currentLang === 'ru' ? 'ҚАЗ' : 'РУС';
+  // html lang attr
+  document.documentElement.lang = currentLang === 'kz' ? 'kk' : 'ru';
+  // Document title
+  document.title = currentLang === 'kz' ? 'МаңғыстауЖұмыс — Актаудағы жұмыс' : 'МангыстауРаботает — Работа в Актау';
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'ru' ? 'kz' : 'ru';
+  localStorage.setItem('lang', currentLang);
+  applyTranslations();
+}
+
+// ════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════
+let currentTheme = localStorage.getItem('theme') || 'dark';
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', currentTheme);
+  applyTheme();
+}
+// Apply theme immediately to prevent flash
+applyTheme();
+</script>
 </head>
 <body>
 
@@ -663,272 +932,6 @@ let sort = 'date';
 let expandedId = null;
 let appliedIds = new Set();
 let searchTimer = null;
-
-
-// ════════════════════════════════════════
-//  TRANSLATIONS
-// ════════════════════════════════════════
-const TRANSLATIONS = {
-  ru: {
-    nav_jobs: 'Вакансии',
-    nav_employer: 'Разместить вакансию',
-    nav_profile: 'Мой профиль',
-    nav_login: 'Войти / Регистрация',
-    mob_jobs: '📋 Вакансии',
-    mob_employer: '➕ Разместить вакансию',
-    mob_profile: '👤 Мой профиль',
-    toggle_seeker: 'Ищу работу',
-    toggle_employer: 'Работодатель',
-    hero_title: 'Работа в <span class="accent">Мангистау</span>',
-    hero_sub_tpl: '{n} вакансий прямо сейчас · AI подберёт лучшие',
-    hero_sub_default: 'Актуальные вакансии · AI подберёт лучшие для вас',
-    search_placeholder: 'Должность, компания или навык...',
-    stat_residents: 'Жителей области',
-    stat_jobs: 'Активных вакансий',
-    stat_ai: 'Матчинг навыков',
-    stat_tg: 'Уведомления',
-    filter_type: 'Тип занятости',
-    filter_sort: 'Сортировка',
-    type_all: 'Все',
-    type_full: 'Полная',
-    type_part: 'Частичная',
-    type_side: 'Подработка',
-    sort_date: 'По дате',
-    sort_ai: '✨ AI фильтр',
-    list_loading: 'Загрузка...',
-    jobs_loading: '<div class="loading-bar"><div class="spinner"></div> <span data-i18n="jobs_loading_text">Загружаем вакансии...</span></div>',
-    apply_title: 'Отклик на вакансию',
-    apply_resume_label: 'О себе / Резюме *',
-    apply_resume_ph: 'Расскажите о своём опыте, навыках, почему подходите на эту вакансию...',
-    apply_phone_label: 'Контактный телефон',
-    apply_salary_label: 'Ожидаемая зарплата',
-    apply_salary_ph: '350 000 ₸ или договорная',
-    apply_send: '📩 Отправить отклик',
-    auth_welcome: 'Добро пожаловать',
-    auth_sub: 'МангыстауРаботает — работа в Мангистау',
-    auth_login_tab: 'Войти',
-    auth_reg_tab: 'Регистрация',
-    auth_password: 'Пароль',
-    auth_login_btn: 'Войти',
-    auth_register_btn: 'Зарегистрироваться',
-    emp_title: 'Разместить вакансию',
-    emp_sub: 'Бесплатно · Публикация мгновенная · AI поможет с описанием',
-    emp_position: 'Должность *',
-    emp_company: 'Компания / ИП *',
-    emp_salary: 'Зарплата',
-    emp_location: 'Район',
-    emp_type: 'Тип занятости',
-    emp_exp: 'Опыт',
-    emp_skills: 'Навыки (через запятую)',
-    emp_desc: 'Описание вакансии',
-    emp_ai_write: '✨ Написать с AI',
-    emp_contact: 'Контакт (Telegram / телефон) *',
-    emp_publish: 'Опубликовать вакансию →',
-    emp_success_title: 'Вакансия опубликована!',
-    emp_success_sub: 'Соискатели уже видят вашу вакансию. AI-матчинг подберёт лучших кандидатов.',
-    emp_success_more: 'Разместить ещё',
-    prof_title: 'Мой профиль',
-    prof_guest_sub: 'Войдите чтобы видеть свои отклики и настроить Telegram-уведомления',
-    prof_guest_btn: 'Войти в аккаунт',
-    prof_tg_title: '📱 Telegram уведомления',
-    prof_tg_status: 'Статус:',
-    prof_tg_unlinked: 'Не привязан',
-    prof_tg_get_code: 'Получить код',
-    prof_tg_unlink: 'Отвязать',
-    prof_apps_title: '📋 Мои отклики',
-    prof_jobs_title: '📌 Мои объявления',
-    prof_seeker_title: '✨ Мой профиль соискателя',
-    prof_seeker_sub: 'Заполните профиль — AI фильтр на главной странице будет подбирать вакансии именно под вас',
-    prof_ai_btn: '✨ AI анализ профиля',
-    prof_ai_filter_btn: '🔍 AI фильтр вакансий',
-    prof_ai_hint: 'Нажмите «AI анализ профиля» — получите советы и подходящие вакансии',
-    prof_logout: 'Выйти',
-    prof_delete: 'Удалить аккаунт',
-    prof_new_job: '+ Разместить новую',
-    prof_no_apps: 'Вы ещё не откликались на вакансии',
-    // Profile form labels
-    p_desired: 'Желаемая профессия',
-    p_salary_min: 'Желаемая зарплата (₸)',
-    p_schedule: 'Желаемый график',
-    p_type: 'Тип занятости',
-    p_skills: 'Навыки',
-    p_exp_level: 'Опыт работы',
-    p_education: 'Образование',
-    p_about: 'О себе / дополнительно',
-    // Errors/status
-    server_wake: '⏳ Сервер просыпается, подождите до 60 сек...',
-    jobs_error: '⚠️ Не удалось загрузить вакансии. Обнови страницу через минуту.',
-    ai_no_profile: '⚠️ Заполни профиль в разделе <b>Мой профиль</b> — тогда AI подберёт подходящие вакансии.',
-    ai_loading: '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI подбирает вакансии под ваш профиль...</p></div>',
-    ai_no_match: '🤖 AI не нашёл подходящих вакансий по вашему профилю.<br><span style="font-size:12px">Попробуйте заполнить профиль подробнее или посмотрите все вакансии.</span>',
-    ai_found: '🤖 AI нашёл {n} подходящих вакансий',
-    ai_error: '⚠️ Ошибка AI фильтра: {msg}.',
-    no_jobs_filter: 'Нет вакансий для фильтрации.',
-    expand_hint: t('expand_hint'),
-    collapse_hint: t('collapse_hint'),
-    apply_btn: t('apply_btn'),
-    applied_btn: t('applied_btn'),
-    tg_notify: t('tg_notify'),
-    posted_at: t('posted_at'),
-    days_ago: t('days_ago'),
-    today: t('today'),
-  },
-  kz: {
-    nav_jobs: 'Жұмыс орындары',
-    nav_employer: 'Вакансия орналастыру',
-    nav_profile: 'Менің профилім',
-    nav_login: 'Кіру / Тіркелу',
-    mob_jobs: '📋 Жұмыс орындары',
-    mob_employer: '➕ Вакансия орналастыру',
-    mob_profile: '👤 Менің профилім',
-    toggle_seeker: 'Жұмыс іздеймін',
-    toggle_employer: 'Жұмыс беруші',
-    hero_title: '<span class="accent">Маңғыстауда</span> жұмыс',
-    hero_sub_tpl: 'Қазір {n} вакансия · AI үздіктерін іріктейді',
-    hero_sub_default: 'Өзекті вакансиялар · AI сізге үздіктерін таңдайды',
-    search_placeholder: 'Лауазым, компания немесе дағды...',
-    stat_residents: 'Облыс тұрғыны',
-    stat_jobs: 'Белсенді вакансия',
-    stat_ai: 'Дағдыларды сәйкестендіру',
-    stat_tg: 'Хабарландырулар',
-    filter_type: 'Жұмыс түрі',
-    filter_sort: 'Сұрыптау',
-    type_all: 'Барлығы',
-    type_full: 'Толық',
-    type_part: 'Жартылай',
-    type_side: 'Қосымша жұмыс',
-    sort_date: 'Күні бойынша',
-    sort_ai: '✨ AI сүзгі',
-    list_loading: 'Жүктелуде...',
-    jobs_loading: '<div class="loading-bar"><div class="spinner"></div> Вакансиялар жүктелуде...</div>',
-    apply_title: 'Вакансияға өтініш',
-    apply_resume_label: 'Өзіңіз туралы / Түйіндеме *',
-    apply_resume_ph: 'Тәжірибеңіз, дағдыларыңыз, неліктен осы лауазымға сәйкессіз...',
-    apply_phone_label: 'Байланыс телефоны',
-    apply_salary_label: 'Күтілетін жалақы',
-    apply_salary_ph: '350 000 ₸ немесе келісім бойынша',
-    apply_send: '📩 Өтінішті жіберу',
-    auth_welcome: 'Қош келдіңіз',
-    auth_sub: 'МаңғыстауЖұмыс — Маңғыстаудағы жұмыс',
-    auth_login_tab: 'Кіру',
-    auth_reg_tab: 'Тіркелу',
-    auth_password: 'Құпия сөз',
-    auth_login_btn: 'Кіру',
-    auth_register_btn: 'Тіркелу',
-    emp_title: 'Вакансия орналастыру',
-    emp_sub: 'Тегін · Жарияланым лезде · AI сипаттамасын жазуға көмектеседі',
-    emp_position: 'Лауазым *',
-    emp_company: 'Компания / ЖК *',
-    emp_salary: 'Жалақы',
-    emp_location: 'Аудан',
-    emp_type: 'Жұмыс түрі',
-    emp_exp: 'Тәжірибе',
-    emp_skills: 'Дағдылар (үтірмен)',
-    emp_desc: 'Вакансия сипаттамасы',
-    emp_ai_write: '✨ AI-мен жазу',
-    emp_contact: 'Байланыс (Telegram / телефон) *',
-    emp_publish: 'Вакансияны жариялау →',
-    emp_success_title: 'Вакансия жарияланды!',
-    emp_success_sub: 'Іздеушілер сіздің вакансияңызды көруде. AI-матчинг үздік үміткерлерді іріктейді.',
-    emp_success_more: 'Тағы орналастыру',
-    prof_title: 'Менің профилім',
-    prof_guest_sub: 'Өтініштеріңізді көру және Telegram хабарландыруларын орнату үшін кіріңіз',
-    prof_guest_btn: 'Аккаунтқа кіру',
-    prof_tg_title: '📱 Telegram хабарландырулары',
-    prof_tg_status: 'Күй:',
-    prof_tg_unlinked: 'Байланыстырылмаған',
-    prof_tg_get_code: 'Код алу',
-    prof_tg_unlink: 'Байланысты үзу',
-    prof_apps_title: '📋 Менің өтініштерім',
-    prof_jobs_title: '📌 Менің хабарландыруларым',
-    prof_seeker_title: '✨ Жұмыс іздеуші профилі',
-    prof_seeker_sub: 'Профильді толтырыңыз — AI сүзгі сізге лайықты вакансияларды іріктейді',
-    prof_ai_btn: '✨ AI профиль талдауы',
-    prof_ai_filter_btn: '🔍 Вакансияларды AI сүзгісі',
-    prof_ai_hint: '«AI профиль талдауы» батырмасын басыңыз — кеңестер мен лайықты вакансиялар аласыз',
-    prof_logout: 'Шығу',
-    prof_delete: 'Аккаунтты жою',
-    prof_new_job: '+ Жаңасын орналастыру',
-    prof_no_apps: 'Сіз әлі вакансияларға өтініш берген жоқсыз',
-    p_desired: 'Қалаған мамандық',
-    p_salary_min: 'Қалаған жалақы (₸)',
-    p_schedule: 'Қалаған кесте',
-    p_type: 'Жұмыс түрі',
-    p_skills: 'Дағдылар',
-    p_exp_level: 'Жұмыс тәжірибесі',
-    p_education: 'Білімі',
-    p_about: 'Өзіңіз туралы / қосымша',
-    server_wake: '⏳ Сервер оянып жатыр, 60 секунд күтіңіз...',
-    jobs_error: '⚠️ Вакансияларды жүктеу мүмкін болмады. Бір минуттан кейін жаңартыңыз.',
-    ai_no_profile: '⚠️ <b>Менің профилім</b> бөлімінде профильді толтырыңыз — AI сізге лайықты вакансияларды іріктейді.',
-    ai_loading: '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI профиліңізге сай вакансияларды іріктеуде...</p></div>',
-    ai_no_match: '🤖 AI профиліңізге сай вакансия таппады.<br><span style="font-size:12px">Профильді толығырақ толтырып немесе барлық вакансияларды қараңыз.</span>',
-    ai_found: '🤖 AI {n} лайықты вакансия тапты',
-    ai_error: '⚠️ AI сүзгі қатесі: {msg}.',
-    no_jobs_filter: 'Сүзгілеу үшін вакансиялар жоқ.',
-    expand_hint: '▾ Толығырақ',
-    collapse_hint: '▴ Жию',
-    apply_btn: 'Өтініш беру',
-    applied_btn: '✓ Өтініш жіберілді',
-    tg_notify: '📬 TG-да хабарлау',
-    posted_at: 'Жарияланды',
-    days_ago: 'күн бұрын',
-    today: 'бүгін',
-  }
-};
-
-let currentLang = localStorage.getItem('lang') || 'ru';
-
-function t(key, vars) {
-  const str = TRANSLATIONS[currentLang][key] || TRANSLATIONS['ru'][key] || key;
-  if (!vars) return str;
-  return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : '');
-}
-
-function applyTranslations() {
-  // data-i18n elements (innerHTML)
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    const val = t(key);
-    if (val) el.innerHTML = val;
-  });
-  // data-i18n-placeholder
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
-    const val = t(key);
-    if (val) el.placeholder = val;
-  });
-  // Lang button label
-  const lb = document.getElementById('langLabel');
-  if (lb) lb.textContent = currentLang === 'ru' ? 'ҚАЗ' : 'РУС';
-  // html lang attr
-  document.documentElement.lang = currentLang === 'kz' ? 'kk' : 'ru';
-  // Document title
-  document.title = currentLang === 'kz' ? 'МаңғыстауЖұмыс — Актаудағы жұмыс' : 'МангыстауРаботает — Работа в Актау';
-}
-
-function toggleLang() {
-  currentLang = currentLang === 'ru' ? 'kz' : 'ru';
-  localStorage.setItem('lang', currentLang);
-  applyTranslations();
-}
-
-// ════════════════════════════════════════
-//  THEME
-// ════════════════════════════════════════
-let currentTheme = localStorage.getItem('theme') || 'dark';
-
-function applyTheme() {
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  const icon = document.getElementById('themeIcon');
-  if (icon) icon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-}
-
-function toggleTheme() {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('theme', currentTheme);
-  applyTheme();
-}
 
 // ════════════════════════════════════════
 //  INIT
