@@ -1020,9 +1020,9 @@ async function api(method, path, body) {
     clearTimeout(timeout);
     const data = await res.json();
     if (!res.ok) {
-      if (res.status === 401 && data.error && data.error.includes('устарела')) {
-        // Сессия устарела (Render сбросил БД) — выходим автоматически
-        doLogout();
+      if (res.status === 401) {
+        // Любой 401 — сессия недействительна (сервер мог сбросить БД)
+        doLogout(true);
         throw new Error('Сессия устарела — войдите снова');
       }
       throw new Error(data.error || 'Ошибка сервера');
@@ -1133,12 +1133,20 @@ function saveAuth(data) {
   updateNavAuth();
 }
 
-function doLogout() {
+function doLogout(showMsg) {
   currentUser = null;
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   updateNavAuth();
   showPage('jobs');
+  if (showMsg) {
+    // Показываем уведомление о сбросе сессии
+    const msg = document.createElement('div');
+    msg.textContent = '⚠️ Сессия истекла — сервер перезапустился. Войдите снова.';
+    msg.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1a2235;border:1px solid var(--accent);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5)';
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 5000);
+  }
 }
 
 function showAuthError(msg) {
