@@ -38,20 +38,20 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 
 /* NAVBAR */
 .navbar{position:sticky;top:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-.navbar-inner{max-width:1200px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;gap:16px}
-.brand{display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
-.brand-name{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;color:var(--text)}
-.brand-tag{background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
-.nav-links{display:flex;gap:4px;flex:1}
-.nav-btn{background:none;border:none;color:var(--muted);font-family:'Golos Text',sans-serif;font-size:14px;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .2s}
+.navbar-inner{max-width:1400px;margin:0 auto;padding:0 32px;height:68px;display:flex;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0;margin-right:8px}
+.brand-name{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.brand-tag{background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+.nav-links{display:flex;gap:6px;flex:1}
+.nav-btn{background:none;border:none;color:var(--muted);font-family:'Golos Text',sans-serif;font-size:14px;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .2s}
 .nav-btn:hover,.nav-btn.active{color:var(--text);background:var(--bg3)}
-.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .user-toggle{display:flex;gap:2px;background:var(--bg3);border-radius:8px;padding:3px}
-.toggle-btn{background:none;border:none;color:var(--muted);font-family:'Golos Text',sans-serif;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.toggle-btn{background:none;border:none;color:var(--muted);font-family:'Golos Text',sans-serif;font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;white-space:nowrap}
 .toggle-btn.active{background:var(--accent);color:#fff}
-.btn-login{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:8px;padding:6px 14px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer;transition:all .2s}
+.btn-login{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:8px;padding:7px 16px;font-size:13px;font-family:'Golos Text',sans-serif;cursor:pointer;transition:all .2s}
 .btn-login:hover{border-color:var(--accent);color:var(--accent)}
-.user-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer}
 .user-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
 
 /* MODAL */
@@ -82,9 +82,9 @@ textarea.form-input{resize:vertical;min-height:90px}
 .success-msg.show{display:block}
 
 /* HERO */
-.hero{background:var(--hero-bg);border-bottom:1px solid var(--border);padding:40px 20px 28px;position:relative;overflow:hidden}
+.hero{background:var(--hero-bg);border-bottom:1px solid var(--border);padding:48px 32px 32px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,107,53,0.12) 0%,transparent 70%);pointer-events:none}
-.hero-inner{max-width:1200px;margin:0 auto}
+.hero-inner{max-width:1400px;margin:0 auto}
 .hero-title{font-family:'Unbounded',sans-serif;font-size:clamp(22px,4vw,36px);font-weight:700;line-height:1.2;margin-bottom:8px}
 .hero-title .accent{color:var(--accent)}
 .hero-sub{color:var(--muted);font-size:15px;margin-bottom:20px}
@@ -93,13 +93,13 @@ textarea.form-input{resize:vertical;min-height:90px}
 .search-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'Golos Text',sans-serif;font-size:15px}
 .search-input::placeholder{color:var(--muted)}
 .search-clear{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px}
-.stats-row{max-width:1200px;margin:24px auto 0;display:flex;gap:32px;flex-wrap:wrap}
+.stats-row{max-width:1400px;margin:24px auto 0;display:flex;gap:40px;flex-wrap:wrap}
 .stat{display:flex;flex-direction:column;gap:2px}
 .stat-num{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;color:var(--accent2)}
 .stat-label{font-size:12px;color:var(--muted)}
 
 /* LAYOUT */
-.content-wrap{max-width:1200px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start}
+.content-wrap{max-width:1400px;margin:0 auto;padding:28px 32px;display:grid;grid-template-columns:220px 1fr;gap:28px;align-items:start}
 .filters{position:sticky;top:76px;display:flex;flex-direction:column;gap:20px}
 .filter-group{display:flex;flex-direction:column;gap:5px}
 .filter-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
@@ -391,14 +391,14 @@ const TRANSLATIONS = {
     ai_found: '🤖 AI нашёл {n} подходящих вакансий',
     ai_error: '⚠️ Ошибка AI фильтра: {msg}.',
     no_jobs_filter: 'Нет вакансий для фильтрации.',
-    expand_hint: t('expand_hint'),
-    collapse_hint: t('collapse_hint'),
-    apply_btn: t('apply_btn'),
-    applied_btn: t('applied_btn'),
-    tg_notify: t('tg_notify'),
-    posted_at: t('posted_at'),
-    days_ago: t('days_ago'),
-    today: t('today'),
+    expand_hint: '▾ Подробнее',
+    collapse_hint: '▴ Свернуть',
+    apply_btn: 'Откликнуться',
+    applied_btn: '✓ Отклик отправлен',
+    tg_notify: '📬 Уведомить в TG',
+    posted_at: 'Опубликовано',
+    days_ago: 'дн. назад',
+    today: 'сегодня',
   },
   kz: {
     nav_jobs: 'Жұмыс орындары',
@@ -558,6 +558,16 @@ function toggleTheme() {
 }
 // Apply theme immediately to prevent flash
 applyTheme();
+
+// ════ REGISTRATION ROLE — must be available before body renders ════
+let regRole = 'seeker';
+function selectRegRole(r) {
+  regRole = r;
+  const s = document.getElementById('roleSeeker');
+  const e = document.getElementById('roleEmployer');
+  if (s) s.classList.toggle('active', r === 'seeker');
+  if (e) e.classList.toggle('active', r === 'employer');
+}
 
 </script>
 </head>
@@ -1060,13 +1070,6 @@ function switchAuthTab(tab) {
   document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
   document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
   document.getElementById('authError').classList.remove('show');
-}
-
-let regRole = 'seeker';
-function selectRegRole(r) {
-  regRole = r;
-  document.getElementById('roleSeeker').classList.toggle('active', r === 'seeker');
-  document.getElementById('roleEmployer').classList.toggle('active', r === 'employer');
 }
 
 async function doLogin() {
