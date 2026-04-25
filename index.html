@@ -181,14 +181,90 @@ textarea.form-input{resize:vertical;min-height:90px}
 .app-status.accepted{background:rgba(16,185,129,.15);color:var(--green)}
 .app-status.rejected{background:rgba(239,68,68,.15);color:#f87171}
 
+.burger-btn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px;border-radius:6px}
+.burger-btn span{display:block;width:20px;height:2px;background:var(--muted);border-radius:2px;transition:all .2s}
+.mobile-menu{position:absolute;top:60px;left:0;right:0;background:rgba(10,14,26,0.98);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:8px 14px 14px;display:flex;flex-direction:column;gap:4px;z-index:99}
+.mobile-menu.hidden{display:none}
+.mobile-nav-btn{background:none;border:none;color:var(--muted);font-family:'Golos Text',sans-serif;font-size:14px;padding:12px 14px;border-radius:8px;cursor:pointer;text-align:left;transition:all .2s}
+.mobile-nav-btn:hover{background:var(--bg3);color:var(--text)}
 @media(max-width:768px){
-  .content-wrap{grid-template-columns:1fr}
-  .filters{position:static;flex-direction:row;flex-wrap:wrap;gap:12px}
-  .filter-group{flex-direction:row;flex-wrap:wrap;align-items:center}
-  .form-row{grid-template-columns:1fr}
-  .profile-grid{grid-template-columns:1fr}
+  /* Navbar */
+  .navbar-inner{padding:0 14px;gap:10px}
   .nav-links{display:none}
-  .brand-name{font-size:10px}
+  .brand-name{font-size:11px}
+  .btn-login{font-size:12px;padding:5px 10px}
+  .btn-seek{font-size:12px;padding:5px 10px}
+  .burger-btn{display:flex!important}
+  .user-toggle{display:none}
+
+  /* Hero */
+  .hero{padding:24px 16px 18px}
+  .hero-sub{font-size:13px;margin-bottom:14px}
+  .search-bar{padding:10px 14px}
+  .search-input{font-size:14px}
+  .stats-row{gap:16px;margin-top:16px}
+  .stat-num{font-size:18px}
+  .stat-label{font-size:10px}
+
+  /* Jobs layout */
+  .content-wrap{grid-template-columns:1fr;padding:14px 12px;gap:14px}
+  .filters{position:static;flex-direction:row;flex-wrap:wrap;gap:10px}
+  .filter-group{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px}
+  .filter-label{font-size:11px;width:100%}
+  .filter-chip{font-size:12px;padding:5px 10px}
+
+  /* Job cards */
+  .job-card{padding:13px 14px}
+  .job-logo{width:36px;height:36px;font-size:14px}
+  .job-title{font-size:14px}
+  .job-meta{font-size:12px;gap:4px}
+  .job-actions{flex-direction:column;gap:6px}
+  .btn-apply{width:100%;text-align:center;padding:10px}
+  .btn-tg{width:100%;text-align:center;padding:10px}
+
+  /* Profile */
+  .profile-grid{grid-template-columns:1fr}
+  .card{padding:16px}
+  .card-title{font-size:13px}
+
+  /* AI profile grid — 1 column on mobile */
+  #aiAnalysisCard [style*="grid-template-columns:1fr 1fr"]{display:flex!important;flex-direction:column!important;gap:0!important}
+
+  /* Employer form */
+  .form-row{grid-template-columns:1fr}
+
+  /* Modals */
+  .modal{padding:24px 18px;margin:10px}
+  .modal-title{font-size:16px}
+  .role-select{flex-direction:column;gap:8px}
+  .role-opt{padding:10px;display:flex;flex-direction:row;align-items:center;gap:10px;text-align:left}
+  .role-opt-icon{font-size:20px;margin-bottom:0}
+
+  /* Apply modal */
+  #applyModal .modal{padding:20px 16px}
+
+  /* Success card */
+  .success-card{padding:28px 20px;margin:30px 12px}
+
+  /* Buttons in profile */
+  #aiAnalysisCard .btn-submit{width:100%}
+  #aiAnalysisCard [style*="display:flex;gap:10px"]{flex-direction:column!important}
+
+  /* Applicants in employer profile */
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  /* List header */
+  .list-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .list-count{font-size:13px}
+}
+
+@media(max-width:400px){
+  .brand-name{display:none}
+  .hero{padding:18px 12px 14px}
+  .content-wrap{padding:10px 10px}
+  .card{padding:13px}
+  .modal{padding:20px 14px}
+  .filter-chip{font-size:11px;padding:4px 8px}
 }
 </style>
 </head>
@@ -221,7 +297,17 @@ textarea.form-input{resize:vertical;min-height:90px}
         <button class="toggle-btn active" id="toggle-seeker" onclick="setRole('seeker')">Ищу работу</button>
         <button class="toggle-btn" id="toggle-employer2" onclick="setRole('employer')">Работодатель</button>
       </div>
+      <!-- Бургер для мобайла -->
+      <button class="burger-btn" id="burgerBtn" onclick="toggleMobileMenu()" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+  </div>
+  <!-- Мобильное меню -->
+  <div class="mobile-menu hidden" id="mobileMenu">
+    <button class="mobile-nav-btn" onclick="showPage('jobs');toggleMobileMenu()">📋 Вакансии</button>
+    <button class="mobile-nav-btn" onclick="showPage('employer');toggleMobileMenu()">➕ Разместить вакансию</button>
+    <button class="mobile-nav-btn" onclick="showPage('profile');toggleMobileMenu()">👤 Мой профиль</button>
   </div>
 </nav>
 
@@ -437,16 +523,82 @@ textarea.form-input{resize:vertical;min-height:90px}
         </div>
         <!-- AI анализ — только для соискателей -->
         <div class="card" id="aiAnalysisCard">
-          <div class="card-title">✨ AI-анализ профиля</div>
-          <div class="form-group"><label class="form-label">Навыки</label><input class="form-input" id="p-skills" placeholder="Продажи, 1С, Excel..."/></div>
-          <div class="form-group"><label class="form-label">Опыт работы</label><input class="form-input" id="p-exp" placeholder="2 года в торговле"/></div>
-          <div class="form-group">
-            <label class="form-label">Желаемая работа <span style="color:var(--accent);font-size:11px">⚡ используется для AI фильтра на главной</span></label>
-            <input class="form-input" id="p-desired" placeholder="Менеджер, консультант, водитель..." oninput="saveDesiredJob()"/>
+          <div class="card-title">✨ Мой профиль соискателя</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Заполните профиль — AI фильтр на главной странице будет подбирать вакансии именно под вас</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label class="form-label">Желаемая профессия</label>
+              <input class="form-input" id="p-desired" placeholder="Менеджер, водитель, бухгалтер..." oninput="saveSeekerProfile()"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Желаемая зарплата (₸)</label>
+              <input class="form-input" id="p-salary-min" placeholder="от 200 000 ₸" oninput="saveSeekerProfile()"/>
+            </div>
           </div>
-          <button class="btn-submit" id="analyzeBtn" onclick="analyzeProfile()">✨ Проанализировать</button>
-          <div class="ai-placeholder" id="aiPlaceholder" style="min-height:100px">
-            <p style="font-size:13px">Нажмите «Проанализировать» — AI подберёт вакансии и даст советы</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label class="form-label">Желаемый график</label>
+              <select class="form-input" id="p-schedule" onchange="saveSeekerProfile()">
+                <option value="">Любой</option>
+                <option value="Полный день">Полный день</option>
+                <option value="Сменный">Сменный</option>
+                <option value="Гибкий">Гибкий</option>
+                <option value="Удалённо">Удалённо</option>
+                <option value="Подработка">Подработка</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Тип занятости</label>
+              <select class="form-input" id="p-type" onchange="saveSeekerProfile()">
+                <option value="">Любой</option>
+                <option value="Полная">Полная</option>
+                <option value="Частичная">Частичная</option>
+                <option value="Подработка">Подработка</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Навыки</label>
+            <input class="form-input" id="p-skills" placeholder="Продажи, 1С, Excel, вождение категории B..." oninput="saveSeekerProfile()"/>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label class="form-label">Опыт работы</label>
+              <select class="form-input" id="p-exp-level" onchange="saveSeekerProfile()">
+                <option value="Без опыта">Без опыта</option>
+                <option value="Менее 1 года">Менее 1 года</option>
+                <option value="1-3 года">1–3 года</option>
+                <option value="3-5 лет">3–5 лет</option>
+                <option value="Более 5 лет">Более 5 лет</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Образование</label>
+              <select class="form-input" id="p-education" onchange="saveSeekerProfile()">
+                <option value="">Не указано</option>
+                <option value="Среднее">Среднее</option>
+                <option value="Среднее специальное">Среднее специальное</option>
+                <option value="Высшее">Высшее</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">О себе / дополнительно</label>
+            <textarea class="form-input" id="p-about" rows="2" placeholder="Права категории B, готов к командировкам, знаю казахский..." oninput="saveSeekerProfile()"></textarea>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+            <button class="btn-submit" id="analyzeBtn" onclick="analyzeProfile()" style="flex:1;min-width:160px">✨ AI анализ профиля</button>
+            <button class="btn-submit" onclick="goToAIFilter()" style="flex:1;min-width:160px;background:var(--bg3);color:var(--text);border:1px solid var(--border)">🔍 AI фильтр вакансий</button>
+          </div>
+
+          <div class="ai-placeholder" id="aiPlaceholder" style="min-height:80px;margin-top:14px">
+            <p style="font-size:13px">Нажмите «AI анализ профиля» — получите советы и подходящие вакансии</p>
           </div>
           <div class="ai-placeholder hidden" id="aiLoading" style="min-height:80px">
             <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
@@ -531,6 +683,10 @@ async function api(method, path, body) {
 // ════════════════════════════════════════
 //  PAGES
 // ════════════════════════════════════════
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('hidden');
+}
+
 function showPage(p) {
   ['jobs', 'employer', 'profile'].forEach(x => {
     document.getElementById('page-' + x).classList.toggle('hidden', x !== p);
@@ -656,9 +812,10 @@ async function loadJobs() {
 
     // AI фильтр — если выбран и есть желаемая работа
     if (sort === 'ai') {
-      const desired = localStorage.getItem('desiredJob') || '';
-      if (!desired) {
-        document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Укажи желаемую работу в разделе <b>Мой профиль</b> — тогда AI подберёт подходящие вакансии.</div>`;
+      const sp = getSeekerProfile();
+      const desired = sp.desired || localStorage.getItem('desiredJob') || '';
+      if (!desired && !sp.skills && !sp.expLevel) {
+        document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Заполни профиль в разделе <b>Мой профиль</b> — тогда AI подберёт подходящие вакансии.</div>`;
         return;
       }
       await filterJobsWithAI(data.jobs, desired);
@@ -679,30 +836,60 @@ async function filterJobsWithAI(jobs, desired) {
     document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">Нет вакансий для фильтрации.</div>`;
     return;
   }
-  document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI подбирает вакансии по вашему запросу...</p></div>`;
+  document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div><p style="margin-top:12px">AI подбирает вакансии под ваш профиль...</p></div>`;
+
+  const sp = getSeekerProfile();
+  const profileDesc = [
+    sp.desired   ? `Желаемая профессия: ${sp.desired}` : '',
+    sp.salaryMin ? `Желаемая зарплата: от ${sp.salaryMin}` : '',
+    sp.schedule  ? `График: ${sp.schedule}` : '',
+    sp.type      ? `Занятость: ${sp.type}` : '',
+    sp.skills    ? `Навыки: ${sp.skills}` : '',
+    sp.expLevel  ? `Опыт: ${sp.expLevel}` : '',
+    sp.education ? `Образование: ${sp.education}` : '',
+    sp.about     ? `Дополнительно: ${sp.about}` : '',
+  ].filter(Boolean).join('\n');
+
   try {
-    const jobList = jobs.map((j, i) => `${i}: ${j.title} — ${j.company}. ${j.description || ''}`).join('\n');
+    const jobList = jobs.map((j, i) =>
+      `${i}: ${j.title} — ${j.company}. Зарплата: ${j.salary || 'не указана'}. Тип: ${j.type || ''}. График: ${j.schedule || ''}. Опыт: ${j.experience || ''}. ${j.description || ''}`
+    ).join('\n');
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 500,
-        system: 'Ты помогаешь искать работу в Мангистау. Отвечай ТОЛЬКО в формате JSON: массив индексов подходящих вакансий, например [0,2,5]. Без текста, только JSON массив.',
-        messages: [{ role: 'user', content: `Человек ищет: "${desired}"\n\nВакансии:\n${jobList}\n\nВерни JSON массив индексов вакансий которые подходят под запрос. Если ничего не подходит — верни [].` }]
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: 'Ты помогаешь искать работу в Мангистау, Казахстан. Анализируй профиль соискателя и список вакансий. Отвечай ТОЛЬКО в формате JSON объекта: {"indices": [0,2,5], "reason": "краткое объяснение на русском до 60 слов"}. Без markdown, только JSON.',
+        messages: [{
+          role: 'user',
+          content: `Профиль соискателя:\n${profileDesc || 'Не заполнен'}\n\nВакансии:\n${jobList}\n\nВерни JSON с индексами подходящих вакансий и кратким объяснением.`
+        }]
       })
     });
+
     const data = await res.json();
-    const raw = (data.content?.[0]?.text || '[]').replace(/```json|```/g, '').trim();
-    const indices = JSON.parse(raw);
+    if (data.error) throw new Error(data.error.message || 'API error');
+
+    const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+    const indices = result.indices || [];
+    const reason = result.reason || '';
     const filtered = indices.map(i => jobs[i]).filter(Boolean);
+
     if (!filtered.length) {
-      document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">🤖 AI не нашёл подходящих вакансий по запросу «${desired}».<br><span style="font-size:12px">Попробуй изменить запрос в профиле или посмотри все вакансии.</span></div>`;
+      document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">🤖 AI не нашёл подходящих вакансий по вашему профилю.<br><span style="font-size:12px">Попробуйте заполнить профиль подробнее или посмотрите все вакансии.</span></div>`;
     } else {
-      document.getElementById('jobsList').innerHTML = `<div style="padding:8px 0 14px;color:var(--accent);font-size:13px">🤖 AI нашёл ${filtered.length} подходящих вакансий для «${desired}»</div>`;
+      document.getElementById('jobsList').innerHTML = `<div style="padding:10px 0 14px"><div style="color:var(--accent);font-size:13px;font-weight:500">🤖 AI нашёл ${filtered.length} подходящих вакансий</div>${reason ? `<div style="color:var(--muted);font-size:12px;margin-top:4px">${reason}</div>` : ''}</div>`;
       renderJobs(filtered, filtered.length, true);
     }
-  } catch {
-    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Ошибка AI фильтра. Попробуй ещё раз.</div>`;
+  } catch(e) {
+    console.error('AI filter error:', e);
+    document.getElementById('jobsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⚠️ Ошибка AI фильтра: ${e.message || 'попробуй ещё раз'}.</div>`;
   }
 }
 
@@ -912,10 +1099,35 @@ function resetEmployer() {
 // ════════════════════════════════════════
 //  PROFILE
 // ════════════════════════════════════════
-function saveDesiredJob() {
-  const val = document.getElementById('p-desired').value;
-  localStorage.setItem('desiredJob', val);
+function saveSeekerProfile() {
+  const profile = {
+    desired:   document.getElementById('p-desired')?.value || '',
+    salaryMin: document.getElementById('p-salary-min')?.value || '',
+    schedule:  document.getElementById('p-schedule')?.value || '',
+    type:      document.getElementById('p-type')?.value || '',
+    skills:    document.getElementById('p-skills')?.value || '',
+    expLevel:  document.getElementById('p-exp-level')?.value || '',
+    education: document.getElementById('p-education')?.value || '',
+    about:     document.getElementById('p-about')?.value || '',
+  };
+  localStorage.setItem('seekerProfile', JSON.stringify(profile));
+  // Обратная совместимость
+  localStorage.setItem('desiredJob', profile.desired);
 }
+
+function getSeekerProfile() {
+  try { return JSON.parse(localStorage.getItem('seekerProfile') || '{}'); } catch { return {}; }
+}
+
+function goToAIFilter() {
+  showPage('jobs');
+  // Включаем AI фильтр
+  const btn = document.getElementById('sortAi');
+  if (btn) { sort = 'ai'; document.querySelectorAll('#sortDate,#sortAi').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+  loadJobs();
+}
+
+function saveDesiredJob() { saveSeekerProfile(); }
 
 async function loadProfile() {
   if (!currentUser) {
@@ -934,9 +1146,16 @@ async function loadProfile() {
     aiCard.style.display = 'none';
   } else {
     aiCard.style.display = '';
-    // Восстанавливаем сохранённую желаемую работу
-    const saved = localStorage.getItem('desiredJob');
-    if (saved) document.getElementById('p-desired').value = saved;
+    // Восстанавливаем сохранённый профиль соискателя
+    const sp = getSeekerProfile();
+    if (document.getElementById('p-desired'))    document.getElementById('p-desired').value    = sp.desired   || '';
+    if (document.getElementById('p-salary-min')) document.getElementById('p-salary-min').value = sp.salaryMin || '';
+    if (document.getElementById('p-schedule'))   document.getElementById('p-schedule').value   = sp.schedule  || '';
+    if (document.getElementById('p-type'))       document.getElementById('p-type').value       = sp.type      || '';
+    if (document.getElementById('p-skills'))     document.getElementById('p-skills').value     = sp.skills    || '';
+    if (document.getElementById('p-exp-level'))  document.getElementById('p-exp-level').value  = sp.expLevel  || 'Без опыта';
+    if (document.getElementById('p-education'))  document.getElementById('p-education').value  = sp.education || '';
+    if (document.getElementById('p-about'))      document.getElementById('p-about').value      = sp.about     || '';
   }
 
   // Telegram статус
