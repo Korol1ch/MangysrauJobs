@@ -189,13 +189,17 @@ textarea.form-input{resize:vertical;min-height:90px}
 .mobile-nav-btn:hover{background:var(--bg3);color:var(--text)}
 @media(max-width:768px){
   /* Navbar */
-  .navbar-inner{padding:0 14px;gap:10px}
+  .navbar-inner{padding:0 12px;gap:8px;overflow:hidden}
   .nav-links{display:none}
-  .brand-name{font-size:11px}
-  .btn-login{font-size:12px;padding:5px 10px}
-  .btn-seek{font-size:12px;padding:5px 10px}
-  .burger-btn{display:flex!important}
+  .brand-name{font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brand-tag{display:none}
+  .btn-login{font-size:11px;padding:4px 8px;white-space:nowrap}
+  .btn-seek{font-size:11px;padding:4px 8px}
+  .nav-right{gap:6px;min-width:0;overflow:hidden}
+  .burger-btn{display:flex!important;flex-shrink:0}
   .user-toggle{display:none}
+  .user-chip{font-size:12px;padding:4px 8px;max-width:120px;overflow:hidden}
+  #navUserName{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   /* Hero */
   .hero{padding:24px 16px 18px}
@@ -620,6 +624,10 @@ textarea.form-input{resize:vertical;min-height:90px}
 // ════════════════════════════════════════
 const API = "https://mangysraujobs.onrender.com"
 
+// Anthropic API key для AI-функций (AI фильтр, генерация описания, анализ профиля)
+// Замените на свой ключ с https://console.anthropic.com
+window.ANTHROPIC_API_KEY = 'YOUR_API_KEY_HERE';
+
 // ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
@@ -859,6 +867,7 @@ async function filterJobsWithAI(jobs, desired) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': window.ANTHROPIC_API_KEY || '',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
@@ -1049,7 +1058,7 @@ async function aiGenerateDesc() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': window.ANTHROPIC_API_KEY || '', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514', max_tokens: 500,
         system: 'Ты помогаешь работодателям в Мангистау (Казахстан) составлять описания вакансий. Отвечай только на русском. Пиши кратко — 2-3 предложения.',
@@ -1302,7 +1311,7 @@ async function analyzeProfile() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': window.ANTHROPIC_API_KEY || '', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514', max_tokens: 800,
         system: 'Ты карьерный консультант для рынка труда Мангистау (Казахстан). Отвечай ТОЛЬКО в формате JSON без markdown и без пояснений. Поля: tips (массив 3 строки), topJobs (массив 3 строки), salaryRange (строка в тенге).',
