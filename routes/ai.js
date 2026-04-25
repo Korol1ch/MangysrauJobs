@@ -2,36 +2,39 @@ const router = require('express').Router();
 const { authOptional } = require('../middleware/auth');
 
 function getApiKey() {
-  return process.env.ANTHROPIC_API_KEY || '';
+  return process.env.GEMINI_API_KEY || '';
 }
 
-async function callClaude(body) {
+async function callGemini(systemPrompt, userPrompt, maxTokens = 500) {
   const key = getApiKey();
-  if (!key) throw new Error('ANTHROPIC_API_KEY не настроен на сервере — добавьте в Render → Environment');
+  if (!key) throw new Error('GEMINI_API_KEY не настроен на сервере — добавьте в Render → Environment');
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
+      }),
+    }
+  );
 
   const data = await res.json();
   if (!res.ok || data.error) {
-    throw new Error(data.error?.message || `Anthropic API error ${res.status}`);
+    throw new Error(data.error?.message || `Gemini API error ${res.status}`);
   }
-  return data;
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// ── Health check чтобы убедиться что роут работает ──
+// ── Health check ──
 router.get('/health', (req, res) => {
   res.json({
     ok: true,
     hasApiKey: !!getApiKey(),
-    message: getApiKey() ? 'ANTHROPIC_API_KEY задан ✅' : 'ANTHROPIC_API_KEY не задан ❌ — добавьте в Render → Environment'
+    message: getApiKey() ? 'GEMINI_API_KEY задан ✅' : 'GEMINI_API_KEY не задан ❌ — добавьте в Render → Environment'
   });
 });
 
@@ -60,14 +63,13 @@ router.post('/filter', authOptional, async (req, res) => {
   ).join('\n');
 
   try {
-    const data = await callClaude({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 500,
-      system: 'Ты помогаешь искать работу в Мангистау, Казахстан. Анализируй профиль соискателя и список вакансий. Отвечай ТОЛЬКО в формате JSON объекта: {"indices": [0,2,5], "reason": "краткое объяснение на русском до 60 слов"}. Без markdown, только JSON.',
-      messages: [{ role: 'user', content: `Профиль соискателя:\n${profileDesc}\n\nВакансии:\n${jobList}\n\nВерни JSON с индексами подходящих вакансий и кратким объяснением.` }]
-    });
-    const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
-    const result = JSON.parse(raw);
+    const raw = await callGemini(
+      'Ты помогаешь искать работу в Мангистау, Казахстан. Анализируй профиль соискателя и список вакансий. Отвечай ТОЛЬКО в формате JSON объекта: {"indices": [0,2,5], "reason": "краткое объяснение на русском до 60 слов"}. Без markdown, только JSON.',
+      `Профиль соискателя:\n${profileDesc}\n\nВакансии:\n${jobList}\n\nВерни JSON с индексами подходящих вакансий и кратким объяснением.`,
+      500
+    );
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
     res.json({ indices: result.indices || [], reason: result.reason || '' });
   } catch (e) {
     console.error('AI /filter error:', e.message);
@@ -80,13 +82,12 @@ router.post('/generate-desc', authOptional, async (req, res) => {
   const { title, company, salary } = req.body;
   if (!title) return res.status(400).json({ error: 'Название должности обязательно' });
   try {
-    const data = await callClaude({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 500,
-      system: 'Ты помогаешь работодателям в Мангистау (Казахстан) составлять описания вакансий. Отвечай только на русском. Пиши кратко — 2-3 предложения.',
-      messages: [{ role: 'user', content: `Напиши описание вакансии: "${title}" в "${company || 'компании'}", зарплата: ${salary || 'обсуждается'}.` }]
-    });
-    res.json({ text: data.content?.[0]?.text || '' });
+    const text = await callGemini(
+      'Ты помогаешь работодателям в Мангистау (Казахстан) составлять описания вакансий. Отвечай только на русском. Пиши кратко — 2-3 предложения.',
+      `Напиши описание вакансии: "${title}" в "${company || 'компании'}", зарплата: ${salary || 'обсуждается'}.`,
+      500
+    );
+    res.json({ text });
   } catch (e) {
     console.error('AI /generate-desc error:', e.message);
     res.status(500).json({ error: e.message });
@@ -97,14 +98,13 @@ router.post('/generate-desc', authOptional, async (req, res) => {
 router.post('/analyze-profile', authOptional, async (req, res) => {
   const { skills, expLevel, desired } = req.body;
   try {
-    const data = await callClaude({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 800,
-      system: 'Ты карьерный консультант для рынка труда Мангистау (Казахстан). Отвечай ТОЛЬКО в формате JSON без markdown и без пояснений. Поля: tips (массив 3 строки), topJobs (массив 3 строки), salaryRange (строка в тенге).',
-      messages: [{ role: 'user', content: `Профиль: навыки: ${skills || '—'}, опыт: ${expLevel || '—'}, желаемая работа: ${desired || '—'}. Верни JSON.` }]
-    });
-    const raw = (data.content?.[0]?.text || '{}').replace(/```json|```/g, '').trim();
-    res.json(JSON.parse(raw));
+    const raw = await callGemini(
+      'Ты карьерный консультант для рынка труда Мангистау (Казахстан). Отвечай ТОЛЬКО в формате JSON без markdown и без пояснений. Поля: tips (массив 3 строки), topJobs (массив 3 строки), salaryRange (строка в тенге).',
+      `Профиль: навыки: ${skills || '—'}, опыт: ${expLevel || '—'}, желаемая работа: ${desired || '—'}. Верни JSON.`,
+      800
+    );
+    const clean = raw.replace(/```json|```/g, '').trim();
+    res.json(JSON.parse(clean));
   } catch (e) {
     console.error('AI /analyze-profile error:', e.message);
     res.status(500).json({ error: e.message });
