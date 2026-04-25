@@ -225,9 +225,31 @@ textarea.form-input{resize:vertical;min-height:90px}
   </div>
 </nav>
 
+<!-- ════ APPLY MODAL ════ -->
+<div class="modal-overlay hidden" id="applyModal" onclick="closeApplyModal(event)">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-close" onclick="closeApplyModal()">✕</button>
+    <h2 class="modal-title">Отклик на вакансию</h2>
+    <p class="modal-sub" id="applyJobTitle" style="color:var(--accent);font-weight:600"></p>
+    <div class="form-group" style="margin-top:16px">
+      <label class="form-label">О себе / Резюме *</label>
+      <textarea id="applyResume" class="form-input" rows="5" placeholder="Расскажите о своём опыте, навыках, почему подходите на эту вакансию..." style="resize:vertical;min-height:120px"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Контактный телефон</label>
+      <input class="form-input" id="applyPhone" placeholder="+7 (700) 000-00-00"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ожидаемая зарплата</label>
+      <input class="form-input" id="applySalary" placeholder="350 000 ₸ или договорная"/>
+    </div>
+    <button class="btn-submit" id="applySubmitBtn" onclick="submitApply()">📩 Отправить отклик</button>
+    <div id="applyError" style="color:#ef4444;font-size:13px;margin-top:8px;display:none"></div>
+  </div>
+</div>
+
 <!-- ════ AUTH MODAL ════ -->
 <div class="modal-overlay hidden" id="authModal">
-  <div class="modal">
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
     <h2 class="modal-title">Добро пожаловать</h2>
     <p class="modal-sub">МангыстауРаботает — работа в Мангистау</p>
@@ -739,7 +761,7 @@ function jobHTML(j) {
         <div class="detail"><span class="detail-l">Откликов</span><span class="detail-v">${j.applicants_count || 0}</span></div>
       </div>
       <div class="job-actions">
-        <button class="btn-apply${applied ? ' applied' : ''}" onclick="applyJob(event,${j.id})" ${applied ? 'disabled' : ''}>${applied ? '✓ Отклик отправлен' : 'Откликнуться'}</button>
+        <button class="btn-apply${applied ? ' applied' : ''}" onclick="applyJob(event,${j.id},\`${j.title} — ${j.company}\`)" ${applied ? 'disabled' : ''}>${applied ? '✓ Отклик отправлен' : 'Откликнуться'}</button>
         ${j.contact ? `<button class="btn-tg" onclick="event.stopPropagation();window.open('https://t.me/${j.contact.replace('@','')}','_blank')">Написать в Telegram</button>` : ''}
       </div>
     </div>
@@ -755,19 +777,59 @@ function toggleCard(id) {
   loadJobs();
 }
 
-async function applyJob(e, id) {
+let applyJobId = null;
+
+function applyJob(e, id, title) {
   e.stopPropagation();
   if (!currentUser) { openAuthModal('login'); return; }
+  applyJobId = id;
+  document.getElementById('applyJobTitle').textContent = title;
+  document.getElementById('applyResume').value = '';
+  document.getElementById('applyPhone').value = currentUser.phone || '';
+  document.getElementById('applySalary').value = '';
+  document.getElementById('applyError').style.display = 'none';
+  document.getElementById('applyModal').classList.remove('hidden');
+}
+
+function closeApplyModal(e) {
+  if (e && e.target !== document.getElementById('applyModal')) return;
+  document.getElementById('applyModal').classList.add('hidden');
+  applyJobId = null;
+}
+
+async function submitApply() {
+  const resume = document.getElementById('applyResume').value.trim();
+  const phone = document.getElementById('applyPhone').value.trim();
+  const salary = document.getElementById('applySalary').value.trim();
+  const errEl = document.getElementById('applyError');
+
+  if (!resume) {
+    errEl.textContent = 'Пожалуйста, напишите о себе';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('applySubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Отправляем...';
+  errEl.style.display = 'none';
+
   try {
-    await api('POST', `/api/jobs/${id}/apply`, { message: '' });
-    appliedIds.add(id);
+    const message = `${resume}${phone ? '\n📞 ' + phone : ''}${salary ? '\n💰 Ожидаемая зарплата: ' + salary : ''}`;
+    await api('POST', `/api/jobs/${applyJobId}/apply`, { message });
+    appliedIds.add(applyJobId);
     const badge = document.getElementById('appliedBadge');
     badge.classList.remove('hidden');
     badge.textContent = `✓ Вы откликнулись на ${appliedIds.size} вакансий`;
+    document.getElementById('applyModal').classList.add('hidden');
+    applyJobId = null;
     loadJobs();
-  } catch (e) {
-    alert(e.message);
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
   }
+  btn.disabled = false;
+  btn.textContent = '📩 Отправить отклик';
 }
 
 // ════════════════════════════════════════
@@ -909,7 +971,7 @@ async function loadProfile() {
         list.innerHTML = '<div style="color:var(--muted);font-size:13px">У вас ещё нет объявлений</div>';
       } else {
         list.innerHTML = jobs.map(j => `
-          <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">
+          <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
             <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
               <div style="flex:1;min-width:0">
                 <strong style="font-size:14px">${j.title}</strong> — ${j.company}
@@ -920,13 +982,67 @@ async function loadProfile() {
                 <button class="btn-sm" onclick="deleteMyJob(${j.id})" style="color:#ef4444;border-color:#ef4444">🗑</button>
               </div>
             </div>
+            <div id="applicants-${j.id}" style="margin-top:10px">
+              <div style="color:var(--muted);font-size:12px">⏳ Загрузка откликов...</div>
+            </div>
           </div>`).join('');
+
+        // Загружаем отклики для каждого объявления
+        for (const j of jobs) {
+          loadApplicants(j.id, j.company);
+        }
       }
     } catch(e) {
       document.getElementById('myJobsList').innerHTML = '<div style="color:var(--muted);font-size:13px">Не удалось загрузить</div>';
     }
   }
 }
+
+async function loadApplicants(jobId, company) {
+  try {
+    const apps = await api('GET', `/api/jobs/${jobId}/applications`);
+    const el = document.getElementById(`applicants-${jobId}`);
+    if (!apps.length) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:6px 0">Откликов пока нет</div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">ОТКЛИКИ (${apps.length})</div>
+      ${apps.map(a => `
+        <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:6px" id="app-${a.id}">
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap">
+            <div>
+              <strong style="font-size:13px">${a.name}</strong>
+              ${a.telegram_username ? `<span style="color:var(--muted);font-size:12px"> · @${a.telegram_username}</span>` : ''}
+              ${a.phone ? `<span style="color:var(--muted);font-size:12px"> · ${a.phone}</span>` : ''}
+            </div>
+            <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${a.status === 'accepted' ? 'rgba(16,185,129,.15)' : a.status === 'rejected' ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.07)'};color:${a.status === 'accepted' ? '#10b981' : a.status === 'rejected' ? '#ef4444' : 'var(--muted)'}">
+              ${{ pending: '⏳ На рассмотрении', accepted: '✅ Принят', rejected: '❌ Отклонён' }[a.status] || '⏳ На рассмотрении'}
+            </span>
+          </div>
+          ${a.message ? `<div style="margin-top:6px;font-size:12px;color:var(--text);white-space:pre-wrap;line-height:1.5;background:var(--card);border-radius:6px;padding:8px">${a.message}</div>` : ''}
+          ${a.status === 'pending' ? `
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button class="btn-sm" onclick="updateApplication(${jobId},${a.id},'accepted','${company}')" style="color:#10b981;border-color:#10b981">✅ Принять</button>
+              <button class="btn-sm" onclick="updateApplication(${jobId},${a.id},'rejected','${company}')" style="color:#ef4444;border-color:#ef4444">❌ Отклонить</button>
+            </div>` : ''}
+        </div>`).join('')}`;
+  } catch {
+    const el = document.getElementById(`applicants-${jobId}`);
+    if (el) el.innerHTML = '';
+  }
+}
+
+async function updateApplication(jobId, appId, status, company) {
+  try {
+    await api('PATCH', `/api/jobs/${jobId}/applications/${appId}`, { status });
+    // Обновляем визуально без перезагрузки всего профиля
+    loadApplicants(jobId, company);
+  } catch(e) {
+    alert(e.message);
+  }
+}
+
 
 async function generateTgCode() {
   if (!currentUser) { openAuthModal('login'); return; }
